@@ -24,6 +24,7 @@ import {
   deleteNews,
   deleteSport,
   deleteSubcategory,
+  deleteStaff,
   upsertAthlete,
   upsertGallery,
   upsertMatch,
@@ -31,6 +32,8 @@ import {
   upsertNews,
   upsertSport,
   upsertSubcategory,
+  upsertStaff,
+  fetchStaff,
   updateMatch,
 } from '@/lib/supabase/services';
 import type { Tables } from '@/lib/supabase/database.types';
@@ -53,9 +56,10 @@ import {
   X,
   Loader2,
   CheckCircle2,
+  UserCheck,
 } from 'lucide-react';
 
-type AdminTab = 'sports' | 'matches' | 'news' | 'gallery' | 'athletes' | 'medals';
+type AdminTab = 'sports' | 'matches' | 'news' | 'gallery' | 'athletes' | 'medals' | 'staff';
 
 const inputClass =
   'bg-surface border border-border/60 rounded-xl px-3.5 py-2.5 text-xs text-text-primary focus:outline-none focus:border-primary w-full';
@@ -249,6 +253,7 @@ export default function AdminPage() {
   const galleryFetcher = useCallback(() => fetchGallery(), []);
   const medalsFetcher = useCallback(() => fetchMedals(), []);
   const athletesFetcher = useCallback(() => fetchAthletes(), []);
+  const staffFetcher = useCallback(() => fetchStaff(), []);
 
   const { data: sports, refetch: refetchSports } = useSupabaseData('sports', sportsFetcher);
   const { data: matches, refetch: refetchMatches } = useSupabaseData('matches', matchesFetcher);
@@ -256,6 +261,7 @@ export default function AdminPage() {
   const { data: gallery, refetch: refetchGallery } = useSupabaseData('gallery', galleryFetcher);
   const { data: medals, refetch: refetchMedals } = useSupabaseData('medals', medalsFetcher);
   const { data: athletes, refetch: refetchAthletes } = useSupabaseData('athletes', athletesFetcher);
+  const { data: staffList, refetch: refetchStaff } = useSupabaseData('staff', staffFetcher);
 
   const [sportOptions, setSportOptions] = useState<{ id: string; name: string }[]>([]);
   const [subcategories, setSubcategories] = useState<Tables<'sport_subcategories'>[]>([]);
@@ -360,6 +366,18 @@ export default function AdminPage() {
     total_points: 0,
   });
 
+  // --- Staff Form State ---
+  const [staffForm, setStaffForm] = useState({
+    id: '',
+    name: '',
+    position: '',
+    department: '',
+    contact_info: '',
+    type: 'Head',
+    display_order: 0,
+    image_url: '',
+  });
+
   useEffect(() => {
     if (athleteForm.sport_id) {
       fetchSubcategories(athleteForm.sport_id).then(setSubcategories).catch(() => setSubcategories([]));
@@ -375,6 +393,7 @@ export default function AdminPage() {
     { id: 'gallery', label: 'แกลเลอรี', icon: <ImageIcon size={14} /> },
     { id: 'athletes', label: 'นักกีฬา', icon: <Users size={14} /> },
     { id: 'medals', label: 'เหรียญรางวัล', icon: <Award size={14} /> },
+    { id: 'staff', label: 'เจ้าหน้าที่/ทีมงาน', icon: <UserCheck size={14} /> },
   ];
 
   if (authLoading) {
@@ -879,6 +898,71 @@ export default function AdminPage() {
                     label: `${m.name} — 🥇${m.gold} 🥈${m.silver} 🥉${m.bronze} (${m.totalPoints} pts)`,
                     onEdit: () => setMedalForm({ id: m.id, name: m.name, color_name: m.colorName, color_hex: m.colorHex, gold: m.gold, silver: m.silver, bronze: m.bronze, total_points: m.totalPoints }),
                     onDelete: () => handleAction(async () => { await deleteMedal(m.id); refetchMedals(); }),
+                  }))}
+                />
+              </>
+            )}
+
+            {/* STAFF TAB */}
+            {activeTab === 'staff' && (
+              <>
+                <Panel title="จัดการเจ้าหน้าที่ / ทีมงาน">
+                  <form
+                    onSubmit={e => {
+                      e.preventDefault();
+                      handleAction(async () => {
+                        await upsertStaff({
+                          id: staffForm.id || `staff-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                          name: staffForm.name,
+                          position: staffForm.position || null,
+                          department: staffForm.department || null,
+                          contact_info: staffForm.contact_info || null,
+                          type: staffForm.type || null,
+                          display_order: Number(staffForm.display_order) || 0,
+                          image_url: staffForm.image_url || null,
+                        });
+                        setStaffForm({ id: '', name: '', position: '', department: '', contact_info: '', type: 'Head', display_order: 0, image_url: '' });
+                        refetchStaff();
+                      });
+                    }}
+                    className="space-y-4"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField label="ชื่อ-นามสกุล">
+                        <input required className={inputClass} value={staffForm.name} onChange={e => setStaffForm(f => ({ ...f, name: e.target.value }))} placeholder="เช่น นายสมชาย ใจดี" />
+                      </FormField>
+                      <FormField label="ตำแหน่ง">
+                        <input className={inputClass} value={staffForm.position} onChange={e => setStaffForm(f => ({ ...f, position: e.target.value }))} placeholder="เช่น ประธานสี, หัวหน้าฝ่ายปวงชน" />
+                      </FormField>
+                      <FormField label="ฝ่าย / สังกัด">
+                        <input className={inputClass} value={staffForm.department} onChange={e => setStaffForm(f => ({ ...f, department: e.target.value }))} placeholder="เช่น ฝ่ายพิธีการ, คณะกรรมการนักเรียน" />
+                      </FormField>
+                      <FormField label="หมวดหมู่ / ประเภท (พิมพ์ได้อิสระ เช่น Head, Staff)">
+                        <input className={inputClass} value={staffForm.type} onChange={e => setStaffForm(f => ({ ...f, type: e.target.value }))} placeholder="เช่น Head, Staff" />
+                      </FormField>
+                      <FormField label="ช่องทางติดต่อ">
+                        <input className={inputClass} value={staffForm.contact_info} onChange={e => setStaffForm(f => ({ ...f, contact_info: e.target.value }))} placeholder="เช่น IG: @name, Tel: 081-xxx-xxxx" />
+                      </FormField>
+                      <FormField label="ลำดับการแสดงผล (เรียงจากน้อยไปมาก)">
+                        <input type="number" min="0" className={inputClass} value={staffForm.display_order} onChange={e => setStaffForm(f => ({ ...f, display_order: parseInt(e.target.value) || 0 }))} />
+                      </FormField>
+                      <ImageUploadField
+                        label="รูปโปรไฟล์"
+                        value={staffForm.image_url}
+                        onChange={url => setStaffForm(f => ({ ...f, image_url: url }))}
+                        bucket="staff-images"
+                        folder="staff"
+                      />
+                    </div>
+                    <SubmitButton saving={saving} label={staffForm.id ? 'อัปเดตข้อมูลเจ้าหน้าที่' : 'เพิ่มเจ้าหน้าที่'} />
+                  </form>
+                </Panel>
+                <ItemList
+                  items={(staffList ?? []).map(s => ({
+                    id: s.id,
+                    label: `[${s.type || 'ทั่วไป'}] ${s.name}${s.position ? ` — ${s.position}` : ''}${s.department ? ` (${s.department})` : ''}`,
+                    onEdit: () => setStaffForm({ id: s.id, name: s.name, position: s.position ?? '', department: s.department ?? '', contact_info: s.contact_info ?? '', type: s.type ?? '', display_order: s.display_order ?? 0, image_url: s.image_url ?? '' }),
+                    onDelete: () => handleAction(async () => { await deleteStaff(s.id); refetchStaff(); }),
                   }))}
                 />
               </>

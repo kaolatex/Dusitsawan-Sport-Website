@@ -177,3 +177,28 @@ export async function deleteMedal(id: string) {
   const { error } = await supabase.from('medals').delete().eq('id', id);
   if (error) throw error;
 }
+
+export async function fetchStaff() {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('staff')
+    .select('*')
+    .order('display_order', { ascending: true })
+    .order('name', { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function upsertStaff(payload: TablesInsert<'staff'>) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('staff').upsert(payload);
+  if (error) throw error;
+}
+
+export async function deleteStaff(id: string) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('staff').delete().eq('id', id);
+  if (error) throw error;
+}
+

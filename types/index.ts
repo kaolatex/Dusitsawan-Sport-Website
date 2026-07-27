@@ -83,3 +83,14 @@ export interface NavItem {
   label: string;
   href: string;
 }
+
+export interface Staff {
+  id: string;
+  name: string;
+  position?: string;
+  department?: string;
+  contactInfo?: string;
+  displayOrder: number;
+  imageUrl?: string;
+  type?: string;
+}

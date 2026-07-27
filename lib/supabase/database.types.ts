@@ -252,6 +252,42 @@ export interface Database {
         };
         Relationships: [];
       };
+      staff: {
+        Row: {
+          id: string;
+          name: string;
+          position: string | null;
+          department: string | null;
+          contact_info: string | null;
+          display_order: number;
+          image_url: string | null;
+          type: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          position?: string | null;
+          department?: string | null;
+          contact_info?: string | null;
+          display_order?: number;
+          image_url?: string | null;
+          type?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          position?: string | null;
+          department?: string | null;
+          contact_info?: string | null;
+          display_order?: number;
+          image_url?: string | null;
+          type?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
