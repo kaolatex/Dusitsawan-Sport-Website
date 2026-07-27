@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import Container from '@/components/ui/container';
 import LoadingState from '@/components/ui/loading-state';
 import AdminLoginModal from '@/components/admin/admin-login-modal';
 import { useAuth } from '@/hooks/useAuth';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { getSupabase } from '@/lib/supabase/client';
 import {
   fetchAthletes,
   fetchMatches,
@@ -48,6 +49,10 @@ import {
   Trophy,
   Users,
   Dumbbell,
+  Upload,
+  X,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react';
 
 type AdminTab = 'sports' | 'matches' | 'news' | 'gallery' | 'athletes' | 'medals';
@@ -61,6 +66,173 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
     <div className="flex flex-col gap-1.5">
       <label className={labelClass}>{label}</label>
       {children}
+    </div>
+  );
+}
+
+// --- Reusable Image Upload Field ---
+function ImageUploadField({
+  label,
+  value,
+  onChange,
+  bucket,
+  folder = '',
+}: {
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+  bucket: string;
+  folder?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Reset status after 3 seconds
+  useEffect(() => {
+    if (uploadStatus !== 'idle') {
+      const timer = setTimeout(() => setUploadStatus('idle'), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [uploadStatus]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+      setUploadStatus('error');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg('ไฟล์รูปภาพต้องมีขนาดไม่เกิน 5 MB');
+      setUploadStatus('error');
+      return;
+    }
+
+    setUploading(true);
+    setUploadStatus('idle');
+    setErrorMsg('');
+
+    try {
+      const supabase = getSupabase();
+      const ext = file.name.split('.').pop() || 'jpg';
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(2, 8);
+      const filePath = folder
+        ? `${folder}/${timestamp}-${random}.${ext}`
+        : `${timestamp}-${random}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      const { data: urlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      onChange(urlData.publicUrl);
+      setUploadStatus('success');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'อัปโหลดไม่สำเร็จ กรุณาลองใหม่';
+      setErrorMsg(message);
+      setUploadStatus('error');
+    } finally {
+      setUploading(false);
+      // Reset file input so the same file can be re-selected
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className={labelClass}>{label}</label>
+
+      {/* URL Text Input */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          className={inputClass}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder="วาง URL หรืออัปโหลดไฟล์..."
+        />
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="shrink-0 p-2 rounded-xl bg-surface border border-border/40 hover:border-red-200 hover:text-red-500 text-text-secondary transition-colors cursor-pointer"
+            title="ลบ URL"
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
+
+      {/* File Upload Button */}
+      <div className="flex items-center gap-3">
+        <label
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-semibold border transition-all cursor-pointer ${
+            uploading
+              ? 'bg-primary/5 border-primary/20 text-primary'
+              : 'bg-surface border-border/40 text-text-secondary hover:border-primary/30 hover:text-primary'
+          }`}
+        >
+          {uploading ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <Upload size={13} />
+          )}
+          {uploading ? 'กำลังอัปโหลด...' : 'เลือกไฟล์จากเครื่อง'}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+            disabled={uploading}
+          />
+        </label>
+
+        {/* Status indicators */}
+        {uploadStatus === 'success' && (
+          <span className="inline-flex items-center gap-1 text-[10px] text-green-600 font-medium">
+            <CheckCircle2 size={12} />
+            อัปโหลดสำเร็จ
+          </span>
+        )}
+        {uploadStatus === 'error' && (
+          <span className="text-[10px] text-red-500 font-medium">
+            {errorMsg}
+          </span>
+        )}
+      </div>
+
+      {/* Image Preview */}
+      {value && (
+        <div className="mt-1 relative w-24 h-24 rounded-xl overflow-hidden border border-border/30 bg-surface">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={value}
+            alt="ตัวอย่างรูปภาพ"
+            className="w-full h-full object-cover"
+            onError={e => {
+              (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23f5f5f7" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%236e6e73" font-size="12">Error</text></svg>';
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -539,7 +711,13 @@ export default function AdminPage() {
                         </select>
                       </FormField>
                       <FormField label="วันที่"><input type="date" required className={inputClass} value={newsForm.date} onChange={e => setNewsForm(f => ({ ...f, date: e.target.value }))} /></FormField>
-                      <FormField label="URL รูปภาพ"><input className={inputClass} value={newsForm.image_url} onChange={e => setNewsForm(f => ({ ...f, image_url: e.target.value }))} /></FormField>
+                      <ImageUploadField
+                        label="รูปภาพข่าว"
+                        value={newsForm.image_url}
+                        onChange={url => setNewsForm(f => ({ ...f, image_url: url }))}
+                        bucket="news-images"
+                        folder="news"
+                      />
                       <div className="md:col-span-2"><FormField label="บทสรุป"><textarea required className={inputClass} rows={2} value={newsForm.excerpt} onChange={e => setNewsForm(f => ({ ...f, excerpt: e.target.value }))} /></FormField></div>
                       <div className="md:col-span-2"><FormField label="เนื้อหา"><textarea required className={inputClass} rows={4} value={newsForm.content} onChange={e => setNewsForm(f => ({ ...f, content: e.target.value }))} /></FormField></div>
                     </div>
@@ -576,7 +754,13 @@ export default function AdminPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField label="ชื่อภาพ"><input required className={inputClass} value={galleryForm.title} onChange={e => setGalleryForm(f => ({ ...f, title: e.target.value }))} /></FormField>
                       <FormField label="หมวดหมู่/กีฬา"><input className={inputClass} value={galleryForm.sport_name} onChange={e => setGalleryForm(f => ({ ...f, sport_name: e.target.value }))} /></FormField>
-                      <FormField label="URL รูปภาพ"><input required className={inputClass} value={galleryForm.image_url} onChange={e => setGalleryForm(f => ({ ...f, image_url: e.target.value }))} /></FormField>
+                      <ImageUploadField
+                        label="รูปภาพแกลเลอรี"
+                        value={galleryForm.image_url}
+                        onChange={url => setGalleryForm(f => ({ ...f, image_url: url }))}
+                        bucket="gallery-images"
+                        folder="gallery"
+                      />
                       <FormField label="วันที่"><input type="date" required className={inputClass} value={galleryForm.date} onChange={e => setGalleryForm(f => ({ ...f, date: e.target.value }))} /></FormField>
                     </div>
                     <SubmitButton saving={saving} label={galleryForm.id ? 'อัปเดตภาพ' : 'เพิ่มภาพ'} />
@@ -630,7 +814,13 @@ export default function AdminPage() {
                       <FormField label="ตำแหน่ง"><input className={inputClass} value={athleteForm.position} onChange={e => setAthleteForm(f => ({ ...f, position: e.target.value }))} /></FormField>
                       <FormField label="คณะสี"><input className={inputClass} value={athleteForm.team} onChange={e => setAthleteForm(f => ({ ...f, team: e.target.value }))} /></FormField>
                       <FormField label="เบอร์"><input className={inputClass} value={athleteForm.number} onChange={e => setAthleteForm(f => ({ ...f, number: e.target.value }))} /></FormField>
-                      <FormField label="URL รูป"><input className={inputClass} value={athleteForm.avatar_url} onChange={e => setAthleteForm(f => ({ ...f, avatar_url: e.target.value }))} /></FormField>
+                      <ImageUploadField
+                        label="รูปนักกีฬา"
+                        value={athleteForm.avatar_url}
+                        onChange={url => setAthleteForm(f => ({ ...f, avatar_url: url }))}
+                        bucket="athlete-avatars"
+                        folder="avatars"
+                      />
                     </div>
                     <SubmitButton saving={saving} label={athleteForm.id ? 'อัปเดตนักกีฬา' : 'เพิ่มนักกีฬา'} />
                   </form>
