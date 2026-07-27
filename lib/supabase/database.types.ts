@@ -1,0 +1,268 @@
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
+export interface Database {
+  public: {
+    Tables: {
+      sports: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          icon_name: string | null;
+          rules: Json;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          icon_name?: string | null;
+          rules?: Json;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          icon_name?: string | null;
+          rules?: Json;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      sport_subcategories: {
+        Row: {
+          id: string;
+          sport_id: string;
+          name: string;
+          description: string | null;
+          rules: Json;
+          sort_order: number;
+        };
+        Insert: {
+          id?: string;
+          sport_id: string;
+          name: string;
+          description?: string | null;
+          rules?: Json;
+          sort_order?: number;
+        };
+        Update: {
+          id?: string;
+          sport_id?: string;
+          name?: string;
+          description?: string | null;
+          rules?: Json;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      athletes: {
+        Row: {
+          id: string;
+          sport_id: string | null;
+          sub_category_id: string | null;
+          name: string;
+          number: string | null;
+          position: string | null;
+          team: string | null;
+          avatar_url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          sport_id?: string | null;
+          sub_category_id?: string | null;
+          name: string;
+          number?: string | null;
+          position?: string | null;
+          team?: string | null;
+          avatar_url?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          sport_id?: string | null;
+          sub_category_id?: string | null;
+          name?: string;
+          number?: string | null;
+          position?: string | null;
+          team?: string | null;
+          avatar_url?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      matches: {
+        Row: {
+          id: string;
+          sport_id: string | null;
+          sport_name: string;
+          stage: string;
+          team_a_name: string;
+          team_a_color_hex: string;
+          team_a_score: number | null;
+          team_b_name: string;
+          team_b_color_hex: string;
+          team_b_score: number | null;
+          status: 'upcoming' | 'live' | 'completed';
+          date: string;
+          time: string;
+          location: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          sport_id?: string | null;
+          sport_name: string;
+          stage: string;
+          team_a_name: string;
+          team_a_color_hex: string;
+          team_a_score?: number | null;
+          team_b_name: string;
+          team_b_color_hex: string;
+          team_b_score?: number | null;
+          status: 'upcoming' | 'live' | 'completed';
+          date: string;
+          time: string;
+          location: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          sport_id?: string | null;
+          sport_name?: string;
+          stage?: string;
+          team_a_name?: string;
+          team_a_color_hex?: string;
+          team_a_score?: number | null;
+          team_b_name?: string;
+          team_b_color_hex?: string;
+          team_b_score?: number | null;
+          status?: 'upcoming' | 'live' | 'completed';
+          date?: string;
+          time?: string;
+          location?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      news: {
+        Row: {
+          id: string;
+          title: string;
+          excerpt: string;
+          content: string;
+          date: string;
+          category: 'sports' | 'announcement' | 'activity';
+          image_url: string | null;
+          is_featured: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          excerpt: string;
+          content: string;
+          date: string;
+          category: 'sports' | 'announcement' | 'activity';
+          image_url?: string | null;
+          is_featured?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          excerpt?: string;
+          content?: string;
+          date?: string;
+          category?: 'sports' | 'announcement' | 'activity';
+          image_url?: string | null;
+          is_featured?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      gallery: {
+        Row: {
+          id: string;
+          title: string;
+          sport_name: string | null;
+          image_url: string;
+          date: string;
+          aspect_ratio: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          sport_name?: string | null;
+          image_url: string;
+          date: string;
+          aspect_ratio?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          sport_name?: string | null;
+          image_url?: string;
+          date?: string;
+          aspect_ratio?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      medals: {
+        Row: {
+          id: string;
+          name: string;
+          color_name: string;
+          color_hex: string;
+          gold: number;
+          silver: number;
+          bronze: number;
+          total_points: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          color_name: string;
+          color_hex: string;
+          gold?: number;
+          silver?: number;
+          bronze?: number;
+          total_points?: number;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          color_name?: string;
+          color_hex?: string;
+          gold?: number;
+          silver?: number;
+          bronze?: number;
+          total_points?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
+  };
+}
+
+export type Tables<T extends keyof Database['public']['Tables']> =
+  Database['public']['Tables'][T]['Row'];
+export type TablesInsert<T extends keyof Database['public']['Tables']> =
+  Database['public']['Tables'][T]['Insert'];
+export type TablesUpdate<T extends keyof Database['public']['Tables']> =
+  Database['public']['Tables'][T]['Update'];
