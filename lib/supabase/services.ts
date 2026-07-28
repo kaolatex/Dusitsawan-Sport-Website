@@ -11,9 +11,9 @@ export async function fetchSports(): Promise<SportCategory[]> {
     supabase.from('athletes').select('*'),
   ]);
 
-  if (sportsRes.error) throw sportsRes.error;
-  if (subsRes.error) throw subsRes.error;
-  if (athletesRes.error) throw athletesRes.error;
+  if (sportsRes.error) { console.error("DB Error:", sportsRes.error); throw new Error(sportsRes.error.message); }
+  if (subsRes.error) { console.error("DB Error:", subsRes.error); throw new Error(subsRes.error.message); }
+  if (athletesRes.error) { console.error("DB Error:", athletesRes.error); throw new Error(athletesRes.error.message); }
 
   return assembleSports(sportsRes.data ?? [], subsRes.data ?? [], athletesRes.data ?? []);
 }
@@ -273,7 +273,7 @@ export async function deleteCheerMessage(id: string) {
 export async function fetchSiteSettings() {
   const supabase = getSupabase();
   const { data, error } = await supabase.from('site_settings').select('*').limit(1).single();
-  if (error && error.code !== 'PGRST116') throw error;
+  if (error && error.code !== 'PGRST116') { console.error("DB Error:", error); throw new Error(error.message); }
   return data ?? null;
 }
 
