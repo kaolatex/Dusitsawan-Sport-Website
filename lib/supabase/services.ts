@@ -3,6 +3,58 @@ import { assembleSports, mapGallery, mapMatch, mapMedal, mapNews } from './mappe
 import type { TablesInsert, TablesUpdate } from './database.types';
 import type { GalleryImage, MatchSchedule, NewsItem, SportCategory, TeamScore } from '@/types';
 
+function extractErrorObject(error: any): Record<string, any> {
+  if (!error) return {};
+  if (typeof error === 'string') return { message: error };
+  if (typeof error !== 'object') return { message: String(error) };
+
+  const result: Record<string, any> = {};
+
+  if (error.message) result.message = error.message;
+  if (error.code) result.code = error.code;
+  if (error.details) result.details = error.details;
+  if (error.hint) result.hint = error.hint;
+  if (error.status) result.status = error.status;
+  if (error.statusText) result.statusText = error.statusText;
+
+  let obj = error;
+  while (obj && obj !== Object.prototype) {
+    for (const key of Object.getOwnPropertyNames(obj)) {
+      if (result[key] === undefined && typeof obj[key] !== 'function') {
+        const val = obj[key];
+        if (val !== undefined && val !== null) {
+          result[key] = val;
+        }
+      }
+    }
+    obj = Object.getPrototypeOf(obj);
+  }
+
+  return result;
+}
+
+function handleDbError(error: any) {
+  if (!error) return;
+
+  const extracted = extractErrorObject(error);
+
+  if (!extracted.message && !extracted.code && !extracted.details && !extracted.hint) {
+    return;
+  }
+
+  console.error("DB Error Details:", extracted);
+
+  const rawMsg =
+    extracted.message ||
+    extracted.details ||
+    extracted.hint ||
+    (extracted.code ? `Database Error (Code: ${extracted.code})` : null);
+
+  if (rawMsg) {
+    throw new Error(rawMsg);
+  }
+}
+
 export async function fetchSports(): Promise<SportCategory[]> {
   const supabase = getSupabase();
   const [sportsRes, subsRes, athletesRes] = await Promise.all([
@@ -11,9 +63,9 @@ export async function fetchSports(): Promise<SportCategory[]> {
     supabase.from('athletes').select('*'),
   ]);
 
-  if (sportsRes.error) { console.error("DB Error:", sportsRes.error); throw new Error(sportsRes.error.message); }
-  if (subsRes.error) { console.error("DB Error:", subsRes.error); throw new Error(subsRes.error.message); }
-  if (athletesRes.error) { console.error("DB Error:", athletesRes.error); throw new Error(athletesRes.error.message); }
+  if (sportsRes.error) handleDbError(sportsRes.error);
+  if (subsRes.error) handleDbError(subsRes.error);
+  if (athletesRes.error) handleDbError(athletesRes.error);
 
   return assembleSports(sportsRes.data ?? [], subsRes.data ?? [], athletesRes.data ?? []);
 }
@@ -26,7 +78,7 @@ export async function fetchMatches(): Promise<MatchSchedule[]> {
     .order('date', { ascending: false })
     .order('time', { ascending: false });
 
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
   return (data ?? []).map(mapMatch);
 }
 
@@ -37,7 +89,7 @@ export async function fetchNews(): Promise<NewsItem[]> {
     .select('*')
     .order('date', { ascending: false });
 
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
   return (data ?? []).map(mapNews);
 }
 
@@ -48,7 +100,7 @@ export async function fetchGallery(): Promise<GalleryImage[]> {
     .select('*')
     .order('date', { ascending: false });
 
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
   return (data ?? []).map(mapGallery);
 }
 
@@ -59,21 +111,21 @@ export async function fetchMedals(): Promise<TeamScore[]> {
     .select('*')
     .order('total_points', { ascending: false });
 
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
   return (data ?? []).map(mapMedal);
 }
 
 export async function fetchAthletes() {
   const supabase = getSupabase();
   const { data, error } = await supabase.from('athletes').select('*').order('name');
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
   return data ?? [];
 }
 
 export async function fetchSportOptions() {
   const supabase = getSupabase();
   const { data, error } = await supabase.from('sports').select('id, name').order('sort_order');
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
   return data ?? [];
 }
 
@@ -82,7 +134,7 @@ export async function fetchSubcategories(sportId?: string) {
   let query = supabase.from('sport_subcategories').select('*').order('sort_order');
   if (sportId) query = query.eq('sport_id', sportId);
   const { data, error } = await query;
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
   return data ?? [];
 }
 
@@ -91,115 +143,115 @@ export async function fetchSubcategories(sportId?: string) {
 export async function upsertSport(payload: TablesInsert<'sports'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('sports').upsert(payload);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function updateSport(id: string, payload: TablesUpdate<'sports'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('sports').update(payload).eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function deleteSport(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('sports').delete().eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function upsertSubcategory(payload: TablesInsert<'sport_subcategories'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('sport_subcategories').upsert(payload);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function deleteSubcategory(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('sport_subcategories').delete().eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function upsertMatch(payload: TablesInsert<'matches'>) {
   const supabase = getSupabase();
-  const { error } = await supabase.from('matches').upsert(payload);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  const { error } = await supabase.from('matches').insert(payload).select();
+  if (error) handleDbError(error);
 }
 
 export async function updateMatch(id: string, payload: TablesUpdate<'matches'>) {
   const supabase = getSupabase();
-  const { error } = await supabase.from('matches').update(payload).eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  const { error } = await supabase.from('matches').update(payload).eq('id', id).select();
+  if (error) handleDbError(error);
 }
 
 export async function deleteMatch(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('matches').delete().eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function upsertNews(payload: TablesInsert<'news'>) {
   const supabase = getSupabase();
-  const { error } = await supabase.from('news').upsert(payload);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  const { error } = await supabase.from('news').insert(payload);
+  if (error) handleDbError(error);
 }
 
 export async function updateNews(id: string, payload: TablesUpdate<'news'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('news').update(payload).eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function deleteNews(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('news').delete().eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function upsertGallery(payload: TablesInsert<'gallery'>) {
   const supabase = getSupabase();
-  const { error } = await supabase.from('gallery').upsert(payload);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  const { error } = await supabase.from('gallery').insert(payload);
+  if (error) handleDbError(error);
 }
 
 export async function updateGallery(id: string, payload: TablesUpdate<'gallery'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('gallery').update(payload).eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function deleteGallery(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('gallery').delete().eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function upsertAthlete(payload: TablesInsert<'athletes'>) {
   const supabase = getSupabase();
-  const { error } = await supabase.from('athletes').upsert(payload);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  const { error } = await supabase.from('athletes').insert(payload);
+  if (error) handleDbError(error);
 }
 
 export async function updateAthlete(id: string, payload: TablesUpdate<'athletes'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('athletes').update(payload).eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function deleteAthlete(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('athletes').delete().eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function upsertMedal(payload: TablesInsert<'medals'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('medals').upsert(payload);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function deleteMedal(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('medals').delete().eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function fetchStaff() {
@@ -210,26 +262,26 @@ export async function fetchStaff() {
     .order('display_order', { ascending: true })
     .order('name', { ascending: true });
 
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
   return data ?? [];
 }
 
 export async function upsertStaff(payload: TablesInsert<'staff'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('staff').upsert(payload);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function updateStaff(id: string, payload: TablesUpdate<'staff'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('staff').update(payload).eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function deleteStaff(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('staff').delete().eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function fetchCheerMessages() {
@@ -239,7 +291,7 @@ export async function fetchCheerMessages() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
   return data ?? [];
 }
 
@@ -249,38 +301,38 @@ export async function submitCheerMessage(payload: TablesInsert<'cheer_wall'>) {
     id: `cheer-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
     ...payload,
   });
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function updateCheerStatus(id: string, status: 'approved' | 'pending' | 'flagged') {
   const supabase = getSupabase();
   const { error } = await supabase.from('cheer_wall').update({ status }).eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function updateCheerWall(id: string, payload: TablesUpdate<'cheer_wall'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('cheer_wall').update(payload).eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function deleteCheerMessage(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('cheer_wall').delete().eq('id', id);
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 export async function fetchSiteSettings() {
   const supabase = getSupabase();
   const { data, error } = await supabase.from('site_settings').select('*').limit(1).single();
-  if (error && error.code !== 'PGRST116') { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error && error.code !== 'PGRST116') handleDbError(error);
   return data ?? null;
 }
 
 export async function upsertSiteSettings(payload: TablesInsert<'site_settings'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('site_settings').upsert({ id: 'main_settings', ...payload });
-  if (error) { console.error("DB Error:", error); throw new Error(error.message); }
+  if (error) handleDbError(error);
 }
 
 

@@ -47,7 +47,7 @@ import {
   updateCheerWall,
   upsertSiteSettings,
 } from '@/lib/supabase/services';
-import type { Tables } from '@/lib/supabase/database.types';
+import type { Tables, TablesInsert } from '@/lib/supabase/database.types';
 import type { MatchStatus } from '@/types';
 import {
   Database,
@@ -330,7 +330,12 @@ export default function AdminPage() {
       showMessage('success', 'บันทึกข้อมูลสำเร็จ');
     } catch (err) {
       console.error("Admin Action Error:", err);
-      showMessage('error', err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      const errorMsg = err instanceof Error
+        ? (err.message && err.message !== '{}' ? err.message : 'เกิดข้อผิดพลาดในการบันทึกข้อมูล (กรุณาเช็คสิทธิ์ RLS หรือความถูกต้องของข้อมูล)')
+        : typeof err === 'string'
+        ? err
+        : 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+      showMessage('error', errorMsg);
     } finally {
       setSaving(false);
     }
@@ -932,9 +937,17 @@ export default function AdminPage() {
                       <FormField label="รายละเอียด"><textarea className={inputClass} rows={2} value={sportForm.description} onChange={e => setSportForm(f => ({ ...f, description: e.target.value }))} /></FormField>
                       <FormField label="กฎกติกา (บรรทัดละ 1 ข้อ)"><textarea className={inputClass} rows={2} value={sportForm.rules} onChange={e => setSportForm(f => ({ ...f, rules: e.target.value }))} /></FormField>
                     </div>
-                    <SubmitButton saving={saving} label="เพิ่มกีฬา" />
+                    <SubmitButton saving={saving} label={sportForm.id ? 'อัปเดตกีฬา' : 'เพิ่มกีฬา'} />
                   </form>
                 </Panel>
+                <ItemList
+                  items={(sports ?? []).map(s => ({
+                    id: s.id,
+                    label: s.name,
+                    onEdit: () => setSportForm({ id: s.id, name: s.name, description: s.description || '', icon_name: s.iconName || 'Trophy', rules: Array.isArray(s.rules) ? s.rules.join('\n') : '' }),
+                    onDelete: () => handleAction(async () => { await deleteSport(s.id); refetchSports(); })
+                  }))}
+                />
               </>
             )}
 
@@ -968,27 +981,31 @@ export default function AdminPage() {
                             }
                           }
 
-                          const payload = {
+                          const payload: TablesInsert<'matches'> = {
                             sport_id: matchForm.sport_id || null,
                             sport_name: selectedSport?.name ?? matchForm.sport_name,
                             stage: matchForm.stage,
-                            match_type: matchForm.match_type,
                             team_a_name: matchForm.team_a_name,
                             team_a_color_hex: matchForm.team_a_color_hex,
                             team_a_score: matchForm.team_a_score ? parseInt(matchForm.team_a_score) : null,
                             team_b_name: matchForm.team_b_name,
                             team_b_color_hex: matchForm.team_b_color_hex,
                             team_b_score: matchForm.team_b_score ? parseInt(matchForm.team_b_score) : null,
-                            competitors: matchForm.match_type === 'track' ? matchForm.competitors.map(c => ({
-                              ...c,
-                              score: c.score ? parseInt(c.score as string) : undefined,
-                              place: c.place ? parseInt(c.place as string) : undefined
-                            })) : null,
                             status: matchForm.status,
                             date: isoDate,
                             time: matchForm.time,
                             location: matchForm.location,
                             is_pinned: matchForm.is_pinned,
+                            ...(matchForm.match_type && matchForm.match_type !== 'versus' ? { match_type: matchForm.match_type } : {}),
+                            ...(matchForm.match_type === 'track' && matchForm.competitors && matchForm.competitors.length > 0 ? {
+                              competitors: matchForm.competitors.map(c => ({
+                                lane: c.lane,
+                                name: c.name || '',
+                                colorHex: c.colorHex || '#EC4899',
+                                score: c.score ? parseInt(c.score as string) : null,
+                                place: c.place ? parseInt(c.place as string) : null
+                              })) as unknown as TablesInsert<'matches'>['competitors']
+                            } : {})
                           };
 
                           if (matchForm.id) {
@@ -1076,6 +1093,38 @@ export default function AdminPage() {
                     <SubmitButton saving={saving} label={matchForm.id ? 'อัปเดตแมตช์' : 'เพิ่มแมตช์'} />
                   </form>
                 </Panel>
+                <ItemList
+                  items={(matches ?? []).map(m => ({
+                    id: m.id,
+                    label: `[${m.sportName || 'ไม่ระบุกีฬา'}] ${m.matchType === 'track' ? m.stage : `${m.teamA?.name} vs ${m.teamB?.name} (${m.stage})`} - ${m.status === 'completed' ? 'แข่งเสร็จแล้ว' : m.status === 'live' ? 'กำลังแข่ง' : 'เร็วๆ นี้'}`,
+                    onEdit: () => setMatchForm({
+                      id: m.id,
+                      sport_id: m.sportId || '',
+                      sport_name: m.sportName,
+                      stage: m.stage,
+                      match_type: m.matchType || 'versus',
+                      team_a_name: m.teamA?.name || '',
+                      team_a_color_hex: m.teamA?.colorHex || '#E6007E',
+                      team_a_score: m.teamA?.score?.toString() || '',
+                      team_b_name: m.teamB?.name || '',
+                      team_b_color_hex: m.teamB?.colorHex || '#1E40AF',
+                      team_b_score: m.teamB?.score?.toString() || '',
+                      competitors: (m.competitors as any) || [
+                        { lane: 1, name: 'คณะ 1 สีเหลือง', colorHex: '#FBBF24', score: '', place: '' },
+                        { lane: 2, name: 'คณะ 2 สีชมพู', colorHex: '#E6007E', score: '', place: '' },
+                        { lane: 3, name: 'คณะ 3 สีเขียว', colorHex: '#10B981', score: '', place: '' },
+                        { lane: 4, name: 'คณะ 4 สีแสด', colorHex: '#F97316', score: '', place: '' },
+                        { lane: 5, name: 'คณะ 5 สีฟ้า', colorHex: '#3B82F6', score: '', place: '' },
+                      ],
+                      status: m.status as any,
+                      date: m.date,
+                      time: m.time,
+                      location: m.location,
+                      is_pinned: m.isPinned || false,
+                    }),
+                    onDelete: () => handleAction(async () => { await deleteMatch(m.id); refetchMatches(); })
+                  }))}
+                />
               </>
             )}
 

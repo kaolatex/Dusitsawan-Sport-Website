@@ -226,22 +226,62 @@ export default function HomePage() {
                         <h4 className="font-bold text-text-primary text-xs sm:text-sm">{(item.data as any).stage}</h4>
                         <span className="text-[10px] text-text-secondary">{(item.data as any).time} น. @ {(item.data as any).location}</span>
                       </div>
-                      <div className="flex items-center gap-4 sm:gap-6 bg-surface/50 border border-border/20 px-4 py-2.5 rounded-xl shrink-0">
-                        <div className="flex items-center gap-1.5 text-right w-20 justify-end">
-                          <span className="text-[11px] font-bold text-text-primary truncate">{(item.data as any).teamA.name}</span>
-                          <div className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: (item.data as any).teamA.colorHex }} />
-                        </div>
-                        <span className="text-xs font-mono font-bold text-text-secondary shrink-0 min-w-[36px] text-center">
-                          {(item.data as any).status === 'completed' ? (
-                            <span className="text-primary">{(item.data as any).teamA.score} - {(item.data as any).teamB.score}</span>
-                          ) : (
-                            <span className="text-[10px] tracking-widest">VS</span>
-                          )}
-                        </span>
-                        <div className="flex items-center gap-1.5 text-left w-20">
-                          <div className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: (item.data as any).teamB.colorHex }} />
-                          <span className="text-[11px] font-bold text-text-primary truncate">{(item.data as any).teamB.name}</span>
-                        </div>
+                      <div className={`flex items-center justify-center bg-surface/50 border border-border/20 rounded-xl shrink-0 ${
+                        (item.data as any).matchType === 'track' ? 'p-3 w-full sm:w-[320px]' : 'px-4 py-2.5 gap-4 sm:gap-6'
+                      }`}>
+                        {(item.data as any).matchType === 'track' && (item.data as any).competitors ? (
+                          <div className="w-full flex flex-col gap-1.5">
+                            {[...(item.data as any).competitors].sort((a, b) => {
+                              if ((item.data as any).status === 'completed') {
+                                return (a.place || 99) - (b.place || 99);
+                              }
+                              return a.lane - b.lane;
+                            }).map((comp: any, idx: number) => (
+                              <div key={idx} className="flex items-center justify-between text-[11px] py-0.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono text-[9px] text-text-secondary w-4 text-center bg-surface border border-border/40 rounded-sm">L{comp.lane}</span>
+                                  <div className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: comp.colorHex }} />
+                                  <span className="font-bold text-text-primary truncate max-w-[100px] sm:max-w-[140px]">{comp.name}</span>
+                                </div>
+                                {(item.data as any).status === 'completed' ? (
+                                  <div className="flex items-center gap-2 font-mono">
+                                    <span className="font-bold text-primary">{comp.score ?? '-'}</span>
+                                    {comp.place && (
+                                      <span className={`text-[9px] px-1 py-0.5 rounded-sm font-bold ${
+                                        comp.place === 1 ? 'bg-accent-gold/20 text-accent-gold' :
+                                        comp.place === 2 ? 'bg-slate-300/20 text-slate-500' :
+                                        comp.place === 3 ? 'bg-amber-700/20 text-amber-700' :
+                                        'bg-surface text-text-secondary'
+                                      }`}>
+                                        #{comp.place}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-[10px] text-text-secondary">-</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-4 sm:gap-6 w-full justify-between">
+                            <div className="flex items-center gap-1.5 text-right w-20 justify-end">
+                              <span className="text-[11px] font-bold text-text-primary truncate">{(item.data as any).teamA?.name}</span>
+                              <div className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: (item.data as any).teamA?.colorHex || '#ccc' }} />
+                            </div>
+                            <span className="text-xs font-mono font-bold text-text-secondary shrink-0 min-w-[36px] text-center">
+                              {(item.data as any).status === 'completed' ? (
+                                <span className="text-primary">{(item.data as any).teamA?.score ?? '-'} - {(item.data as any).teamB?.score ?? '-'}</span>
+                              ) : (
+                                <span className="text-[10px] tracking-widest">VS</span>
+                              )}
+                            </span>
+                            <div className="flex items-center gap-1.5 text-left w-20">
+                              <div className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: (item.data as any).teamB?.colorHex || '#ccc' }} />
+                              <span className="text-[11px] font-bold text-text-primary truncate">{(item.data as any).teamB?.name}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
