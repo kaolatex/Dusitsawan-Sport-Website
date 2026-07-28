@@ -329,7 +329,8 @@ export default function AdminPage() {
       await action();
       showMessage('success', 'บันทึกข้อมูลสำเร็จ');
     } catch (err) {
-      showMessage('error', err instanceof Error ? err.message : 'เกิดข้อผิดพลาด');
+      console.error("Admin Action Error:", err);
+      showMessage('error', err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     } finally {
       setSaving(false);
     }
@@ -945,38 +946,62 @@ export default function AdminPage() {
                     onSubmit={e => {
                       e.preventDefault();
                       handleAction(async () => {
-                        const selectedSport = sportOptions.find(s => s.id === matchForm.sport_id);
+                        try {
+                          const selectedSport = sportOptions.find(s => s.id === matchForm.sport_id);
 
-                        const payload = {
-                          sport_id: matchForm.sport_id || null,
-                          sport_name: selectedSport?.name ?? matchForm.sport_name,
-                          stage: matchForm.stage,
-                          match_type: matchForm.match_type,
-                          team_a_name: matchForm.team_a_name,
-                          team_a_color_hex: matchForm.team_a_color_hex,
-                          team_a_score: matchForm.team_a_score ? parseInt(matchForm.team_a_score) : null,
-                          team_b_name: matchForm.team_b_name,
-                          team_b_color_hex: matchForm.team_b_color_hex,
-                          team_b_score: matchForm.team_b_score ? parseInt(matchForm.team_b_score) : null,
-                          competitors: matchForm.match_type === 'track' ? matchForm.competitors.map(c => ({
-                            ...c,
-                            score: c.score ? parseInt(c.score) : undefined,
-                            place: c.place ? parseInt(c.place) : undefined
-                          })) : null,
-                          status: matchForm.status,
-                          date: matchForm.date,
-                          time: matchForm.time,
-                          location: matchForm.location,
-                          is_pinned: matchForm.is_pinned,
-                        };
+                          // Fix Date Formatting (Ensure YYYY-MM-DD for Supabase)
+                          let isoDate = matchForm.date;
+                          if (isoDate) {
+                            try {
+                              const d = new Date(isoDate);
+                              if (!isNaN(d.getTime())) {
+                                // Extract YYYY-MM-DD locally to avoid timezone shifts
+                                const year = d.getFullYear();
+                                // Basic sanity check: if year is > 2500, it might be Buddhist Era (BE)
+                                const correctedYear = year > 2500 ? year - 543 : year;
+                                const month = String(d.getMonth() + 1).padStart(2, '0');
+                                const day = String(d.getDate()).padStart(2, '0');
+                                isoDate = `${correctedYear}-${month}-${day}`;
+                              }
+                            } catch (e) {
+                              console.warn("Date parse error:", e);
+                            }
+                          }
 
-                        if (matchForm.id) {
-                          await updateMatch(matchForm.id, payload);
-                        } else {
-                          await upsertMatch(payload);
+                          const payload = {
+                            sport_id: matchForm.sport_id || null,
+                            sport_name: selectedSport?.name ?? matchForm.sport_name,
+                            stage: matchForm.stage,
+                            match_type: matchForm.match_type,
+                            team_a_name: matchForm.team_a_name,
+                            team_a_color_hex: matchForm.team_a_color_hex,
+                            team_a_score: matchForm.team_a_score ? parseInt(matchForm.team_a_score) : null,
+                            team_b_name: matchForm.team_b_name,
+                            team_b_color_hex: matchForm.team_b_color_hex,
+                            team_b_score: matchForm.team_b_score ? parseInt(matchForm.team_b_score) : null,
+                            competitors: matchForm.match_type === 'track' ? matchForm.competitors.map(c => ({
+                              ...c,
+                              score: c.score ? parseInt(c.score as string) : undefined,
+                              place: c.place ? parseInt(c.place as string) : undefined
+                            })) : null,
+                            status: matchForm.status,
+                            date: isoDate,
+                            time: matchForm.time,
+                            location: matchForm.location,
+                            is_pinned: matchForm.is_pinned,
+                          };
+
+                          if (matchForm.id) {
+                            await updateMatch(matchForm.id, payload);
+                          } else {
+                            await upsertMatch(payload);
+                          }
+                          setMatchForm(f => ({ ...f, id: '', stage: '', team_a_score: '', team_b_score: '', is_pinned: false }));
+                          refetchMatches();
+                        } catch (err) {
+                          console.error("Match Submit Error Details:", err);
+                          throw err;
                         }
-                        setMatchForm(f => ({ ...f, id: '', stage: '', team_a_score: '', team_b_score: '', is_pinned: false }));
-                        refetchMatches();
                       });
                     }}
                     className="space-y-4"
