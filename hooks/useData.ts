@@ -6,6 +6,10 @@ import {
   fetchMedals,
   fetchNews,
   fetchSports,
+  fetchAthletes,
+  fetchStaff,
+  fetchCheerMessages,
+  fetchSiteSettings,
 } from '@/lib/supabase/services';
 
 export function useSports() {
@@ -31,4 +35,24 @@ export function useGallery() {
 export function useMedals() {
   const fetcher = useCallback(() => fetchMedals(), []);
   return useSupabaseData('medals', fetcher);
+}
+
+export function useAthletes() {
+  const fetcher = useCallback(() => fetchAthletes(), []);
+  return useSupabaseData('athletes', fetcher);
+}
+
+export function useStaff() {
+  const fetcher = useCallback(() => fetchStaff(), []);
+  return useSupabaseData('staff', fetcher);
+}
+
+export function useCheerMessages() {
+  const fetcher = useCallback(() => fetchCheerMessages(), []);
+  return useSupabaseData('cheer_wall', fetcher);
+}
+
+export function useSiteSettings() {
+  const fetcher = useCallback(() => fetchSiteSettings(), []);
+  return useSupabaseData('site_settings', fetcher);
 }

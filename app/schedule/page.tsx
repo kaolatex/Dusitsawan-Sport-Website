@@ -7,15 +7,22 @@ import SectionTitle from '@/components/ui/section-title';
 import LoadingState, { ErrorState } from '@/components/ui/loading-state';
 import { useMatches } from '@/hooks/useData';
 import { MatchStatus } from '@/types';
-import { Calendar, Clock, MapPin, Play } from 'lucide-react';
+import { Calendar, Clock, MapPin, Play, Search } from 'lucide-react';
 
 export default function SchedulePage() {
   const [statusFilter, setStatusFilter] = useState<'all' | MatchStatus>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const { data: schedule, loading, error } = useMatches();
 
-  const filteredMatches = statusFilter === 'all'
-    ? (schedule ?? [])
-    : (schedule ?? []).filter(match => match.status === statusFilter);
+  const filteredMatches = (schedule ?? []).filter(match => {
+    if (statusFilter !== 'all' && match.status !== statusFilter) return false;
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const searchString = `${match.sportName} ${match.stage} ${match.location} ${match.teamA?.name || ''} ${match.teamB?.name || ''} ${match.competitors ? match.competitors.map(c => c.name).join(' ') : ''}`.toLowerCase();
+      return searchString.includes(query);
+    }
+    return true;
+  });
 
   const getStatusBadge = (status: MatchStatus) => {
     switch (status) {
@@ -53,6 +60,20 @@ export default function SchedulePage() {
           title="ตารางแข่งขันและผลการแข่งขันกีฬาสี"
           highlightWord="ตารางแข่งขัน"
         />
+
+        {/* Search Bar */}
+        <div className="relative mb-6">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <Search size={16} className="text-text-secondary" />
+          </div>
+          <input 
+            type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-surface-card border border-border/50 rounded-2xl py-3.5 pl-11 pr-4 text-sm font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all shadow-sm"
+            placeholder="ค้นหาแมตช์, กีฬา, ทีม, คณะสี, สถานที่..."
+          />
+        </div>
 
         {/* Tab Filters - Horizontal scroll on mobile */}
         <div className="flex gap-2 mb-10 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
@@ -106,39 +127,79 @@ export default function SchedulePage() {
                   </div>
 
                   <div className="flex items-center justify-center bg-surface/50 border border-border/30 rounded-2xl p-4 md:px-8 md:py-4.5 w-full md:w-[460px] shrink-0">
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-3 w-[42%] text-right justify-end">
-                        <span className="font-bold text-text-primary text-xs sm:text-sm truncate">{match.teamA.name}</span>
-                        <span
-                          className="w-3.5 h-3.5 rounded-full shrink-0 border border-black/10"
-                          style={{ backgroundColor: match.teamA.colorHex }}
-                        />
-                      </div>
-
-                      <div className="flex flex-col items-center justify-center px-4 shrink-0">
-                        {match.status === 'completed' ? (
-                          <div className="flex items-center gap-2">
-                            <span className={`text-base md:text-xl font-bold font-mono ${match.teamA.score !== undefined && match.teamB.score !== undefined && match.teamA.score > match.teamB.score ? 'text-primary' : 'text-text-secondary'}`}>
-                              {match.teamA.score}
-                            </span>
-                            <span className="text-border text-xs">-</span>
-                            <span className={`text-base md:text-xl font-bold font-mono ${match.teamA.score !== undefined && match.teamB.score !== undefined && match.teamB.score > match.teamA.score ? 'text-primary' : 'text-text-secondary'}`}>
-                              {match.teamB.score}
-                            </span>
+                    {match.matchType === 'track' && match.competitors ? (
+                      <div className="w-full flex flex-col gap-2">
+                        {/* Track Events - Lane View */}
+                        {[...match.competitors].sort((a, b) => {
+                          if (match.status === 'completed') {
+                            return (a.place || 99) - (b.place || 99);
+                          }
+                          return a.lane - b.lane;
+                        }).map((comp, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-xs sm:text-sm py-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[10px] text-text-secondary w-5 text-center bg-surface border border-border/40 rounded-sm">
+                                L{comp.lane}
+                              </span>
+                              <div className="w-3 h-3 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: comp.colorHex }} />
+                              <span className="font-bold text-text-primary truncate max-w-[120px] sm:max-w-[180px]">{comp.name}</span>
+                            </div>
+                            {match.status === 'completed' ? (
+                              <div className="flex items-center gap-3 font-mono">
+                                <span className="font-bold text-primary">{comp.score ?? '-'}</span>
+                                {comp.place && (
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-sm font-bold ${
+                                    comp.place === 1 ? 'bg-accent-gold/20 text-accent-gold' :
+                                    comp.place === 2 ? 'bg-slate-300/20 text-slate-500' :
+                                    comp.place === 3 ? 'bg-amber-700/20 text-amber-700' :
+                                    'bg-surface text-text-secondary'
+                                  }`}>
+                                    #{comp.place}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-text-secondary">-</span>
+                            )}
                           </div>
-                        ) : (
-                          <span className="text-[10px] font-bold text-text-secondary tracking-widest px-2.5 py-0.5 bg-surface border border-border/40 rounded-md">VS</span>
-                        )}
+                        ))}
                       </div>
+                    ) : (
+                      <div className="flex items-center justify-between w-full">
+                        {/* Versus Match View */}
+                        <div className="flex items-center gap-3 w-[42%] text-right justify-end">
+                          <span className="font-bold text-text-primary text-xs sm:text-sm truncate">{match.teamA?.name}</span>
+                          <span
+                            className="w-3.5 h-3.5 rounded-full shrink-0 border border-black/10"
+                            style={{ backgroundColor: match.teamA?.colorHex || '#ccc' }}
+                          />
+                        </div>
 
-                      <div className="flex items-center gap-3 w-[42%] text-left justify-start">
-                        <span
-                          className="w-3.5 h-3.5 rounded-full shrink-0 border border-black/10"
-                          style={{ backgroundColor: match.teamB.colorHex }}
-                        />
-                        <span className="font-bold text-text-primary text-xs sm:text-sm truncate">{match.teamB.name}</span>
+                        <div className="flex flex-col items-center justify-center px-4 shrink-0">
+                          {match.status === 'completed' ? (
+                            <div className="flex items-center gap-2">
+                              <span className={`text-base md:text-xl font-bold font-mono ${match.teamA?.score !== undefined && match.teamB?.score !== undefined && match.teamA.score > match.teamB.score ? 'text-primary' : 'text-text-secondary'}`}>
+                                {match.teamA?.score}
+                              </span>
+                              <span className="text-border text-xs">-</span>
+                              <span className={`text-base md:text-xl font-bold font-mono ${match.teamA?.score !== undefined && match.teamB?.score !== undefined && match.teamB.score > match.teamA.score ? 'text-primary' : 'text-text-secondary'}`}>
+                                {match.teamB?.score}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] font-bold text-text-secondary tracking-widest px-2.5 py-0.5 bg-surface border border-border/40 rounded-md">VS</span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-3 w-[42%] text-left justify-start">
+                          <span
+                            className="w-3.5 h-3.5 rounded-full shrink-0 border border-black/10"
+                            style={{ backgroundColor: match.teamB?.colorHex || '#ccc' }}
+                          />
+                          <span className="font-bold text-text-primary text-xs sm:text-sm truncate">{match.teamB?.name}</span>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               ))

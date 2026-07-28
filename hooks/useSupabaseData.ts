@@ -39,8 +39,9 @@ export function useSupabaseData<T>(
       return;
     }
 
+    const channelName = `realtime-${table}-${Math.random().toString(36).substring(2, 9)}`;
     const channel = supabase
-      .channel(`realtime-${table}`)
+      .channel(channelName)
       .on('postgres_changes', { event: '*', schema: 'public', table }, () => {
         refetch();
       })

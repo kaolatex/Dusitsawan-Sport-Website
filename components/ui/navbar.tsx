@@ -7,6 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Lock } from 'lucide-react';
 import { NAV_ITEMS } from '@/constants';
 import Container from './container';
+import { ThemeToggle } from './theme-toggle';
+
+import AnnouncementBanner from './announcement-banner';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -32,25 +35,25 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+      {/* <AnnouncementBanner /> Removed per Master Specification */}
+      <div className={`${
         scrolled
-          ? 'glassmorphism border-b border-border/40 py-3.5 shadow-xs'
-          : 'bg-transparent py-5'
-      }`}
-    >
-      <Container>
-        <div className="flex items-center justify-between">
+          ? 'glassmorphism border-b border-border/40 py-3 shadow-xs'
+          : 'bg-background/80 backdrop-blur-md border-b border-border/20 py-3.5'
+      }`}>
+        <Container>
+          <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-primary-soft flex items-center justify-center text-white font-bold text-sm shadow-xs group-hover:scale-105 transition-transform">
+            <span className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-tr from-primary to-primary-soft flex items-center justify-center text-white font-bold text-sm shadow-xs group-hover:scale-105 transition-transform">
               ดส
             </span>
-            <div className="flex flex-col">
-              <span className="text-base font-bold tracking-wide text-gradient-primary leading-tight">
+            <div className="flex flex-col whitespace-nowrap">
+              <span className="text-base font-bold tracking-wide bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-300 bg-clip-text text-transparent leading-tight">
                 ดุสิตสวรรค์
               </span>
-              <span className="text-[9px] tracking-widest text-text-secondary uppercase -mt-0.5 group-hover:text-primary transition-colors">
+              <span className="text-[9px] tracking-widest text-zinc-500 dark:text-zinc-400 uppercase -mt-0.5 group-hover:text-primary transition-colors">
                 Tunyamahaprasat
               </span>
             </div>
@@ -70,8 +73,8 @@ export default function Navbar() {
                   href={item.href}
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors relative ${
                     isActive
-                      ? 'text-primary'
-                      : 'text-text-secondary hover:text-text-primary'
+                      ? 'text-primary dark:text-pink-400'
+                      : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
                   }`}
                 >
                   {isActive && (
@@ -89,6 +92,7 @@ export default function Navbar() {
 
           {/* Admin / CTA Button (Desktop) */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <Link
               href="/admin"
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border ${
@@ -102,16 +106,20 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-1.5 rounded-full hover:bg-surface text-text-secondary hover:text-text-primary transition-colors focus:outline-none"
-            aria-label="Toggle Menu"
-          >
-            {isOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-      </Container>
+          {/* Mobile Menu & Theme Button */}
+          <div className="md:hidden flex items-center gap-3">
+            <ThemeToggle />
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-1.5 rounded-full hover:bg-surface text-text-secondary hover:text-text-primary transition-colors focus:outline-none"
+              aria-label="Toggle Menu"
+            >
+              {isOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+          </div>
+        </Container>
+      </div>
 
       {/* Mobile Drawer */}
       <AnimatePresence>

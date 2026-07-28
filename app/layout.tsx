@@ -3,6 +3,7 @@ import { IBM_Plex_Sans_Thai, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/ui/navbar";
 import Footer from "@/components/ui/footer";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const ibmPlexSansThai = IBM_Plex_Sans_Thai({
   weight: ["300", "400", "500", "600", "700"],
@@ -31,11 +32,19 @@ export default function RootLayout({
     <html
       lang="th"
       className={`${ibmPlexSansThai.variable} ${inter.variable} h-full scroll-smooth antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-text-primary">
-        <Navbar />
-        <main className="flex-grow pt-20 md:pt-24 min-h-screen">{children}</main>
-        <Footer />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <Navbar />
+          <main className="flex-grow pt-20 md:pt-24 min-h-screen">{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,7 +1,8 @@
 @import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Design Token Colors */
+  /* Design Token Colors - Light Theme */
   --primary: #E6007E;
   --primary-hover: #C5006C;
   --secondary: #FFB2D9;
@@ -17,6 +18,22 @@
   --foreground: var(--text-primary);
   --ring: rgba(230, 0, 126, 0.2);
 }
+
+:root.dark {
+  /* OLED Dark Mode */
+  --background: #000000;
+  --surface: #111111;
+  --surface-card: #1A1A1A;
+  --text-primary: #F5F5F7;
+  --text-secondary: #86868B;
+  --border: #333333;
+  /* Glowing pink for dark mode */
+  --primary: #FF1493;
+  --primary-hover: #FF69B4;
+  --secondary: #8B0050;
+  --secondary-light: #33001A;
+}
+
 
 @theme {
   --color-primary: var(--primary);
@@ -73,15 +90,18 @@ body {
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
+:root.dark .glassmorphism {
+  background: rgba(17, 17, 17, 0.8);
+}
 
 .text-gradient-primary {
-  background: linear-gradient(135deg, #1D1D1F 40%, #E6007E 100%);
+  background: linear-gradient(135deg, var(--text-primary) 40%, var(--primary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .text-gradient-gold {
-  background: linear-gradient(135deg, #D4AF37 0%, #B8901C 100%);
+  background: linear-gradient(135deg, var(--accent-gold) 0%, #FDF0A6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

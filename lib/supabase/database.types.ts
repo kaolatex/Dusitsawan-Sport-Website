@@ -11,6 +11,8 @@ export interface Database {
           icon_name: string | null;
           rules: Json;
           sort_order: number;
+          is_pinned: boolean;
+          pinned_order: number;
           created_at: string;
         };
         Insert: {
@@ -20,6 +22,8 @@ export interface Database {
           icon_name?: string | null;
           rules?: Json;
           sort_order?: number;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
         };
         Update: {
@@ -29,6 +33,8 @@ export interface Database {
           icon_name?: string | null;
           rules?: Json;
           sort_order?: number;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -70,6 +76,8 @@ export interface Database {
           position: string | null;
           team: string | null;
           avatar_url: string | null;
+          is_pinned: boolean;
+          pinned_order: number;
           created_at: string;
         };
         Insert: {
@@ -81,6 +89,8 @@ export interface Database {
           position?: string | null;
           team?: string | null;
           avatar_url?: string | null;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
         };
         Update: {
@@ -92,6 +102,8 @@ export interface Database {
           position?: string | null;
           team?: string | null;
           avatar_url?: string | null;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -102,16 +114,20 @@ export interface Database {
           sport_id: string | null;
           sport_name: string;
           stage: string;
+          match_type: 'versus' | 'track';
           team_a_name: string;
           team_a_color_hex: string;
           team_a_score: number | null;
           team_b_name: string;
           team_b_color_hex: string;
           team_b_score: number | null;
+          competitors: Json | null;
           status: 'upcoming' | 'live' | 'completed';
           date: string;
           time: string;
           location: string;
+          is_pinned: boolean;
+          pinned_order: number;
           created_at: string;
         };
         Insert: {
@@ -119,16 +135,20 @@ export interface Database {
           sport_id?: string | null;
           sport_name: string;
           stage: string;
+          match_type?: 'versus' | 'track';
           team_a_name: string;
           team_a_color_hex: string;
           team_a_score?: number | null;
           team_b_name: string;
           team_b_color_hex: string;
           team_b_score?: number | null;
+          competitors?: Json | null;
           status: 'upcoming' | 'live' | 'completed';
           date: string;
           time: string;
           location: string;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
         };
         Update: {
@@ -136,16 +156,20 @@ export interface Database {
           sport_id?: string | null;
           sport_name?: string;
           stage?: string;
+          match_type?: 'versus' | 'track';
           team_a_name?: string;
           team_a_color_hex?: string;
           team_a_score?: number | null;
           team_b_name?: string;
           team_b_color_hex?: string;
           team_b_score?: number | null;
+          competitors?: Json | null;
           status?: 'upcoming' | 'live' | 'completed';
           date?: string;
           time?: string;
           location?: string;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -160,6 +184,8 @@ export interface Database {
           category: 'sports' | 'announcement' | 'activity';
           image_url: string | null;
           is_featured: boolean;
+          is_pinned: boolean;
+          pinned_order: number;
           created_at: string;
         };
         Insert: {
@@ -171,6 +197,8 @@ export interface Database {
           category: 'sports' | 'announcement' | 'activity';
           image_url?: string | null;
           is_featured?: boolean;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
         };
         Update: {
@@ -182,6 +210,8 @@ export interface Database {
           category?: 'sports' | 'announcement' | 'activity';
           image_url?: string | null;
           is_featured?: boolean;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -194,6 +224,8 @@ export interface Database {
           image_url: string;
           date: string;
           aspect_ratio: string | null;
+          is_pinned: boolean;
+          pinned_order: number;
           created_at: string;
         };
         Insert: {
@@ -203,6 +235,8 @@ export interface Database {
           image_url: string;
           date: string;
           aspect_ratio?: string | null;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
         };
         Update: {
@@ -212,6 +246,8 @@ export interface Database {
           image_url?: string;
           date?: string;
           aspect_ratio?: string | null;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -262,6 +298,8 @@ export interface Database {
           display_order: number;
           image_url: string | null;
           type: string | null;
+          is_pinned: boolean;
+          pinned_order: number;
           created_at: string;
         };
         Insert: {
@@ -273,6 +311,8 @@ export interface Database {
           display_order?: number;
           image_url?: string | null;
           type?: string | null;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
         };
         Update: {
@@ -284,7 +324,81 @@ export interface Database {
           display_order?: number;
           image_url?: string | null;
           type?: string | null;
+          is_pinned?: boolean;
+          pinned_order?: number;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      cheer_wall: {
+        Row: {
+          id: string;
+          author_name: string;
+          message: string;
+          sticker_id: string | null;
+          is_anonymous: boolean;
+          status: 'approved' | 'pending' | 'flagged';
+          is_pinned: boolean;
+          pinned_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          author_name?: string;
+          message: string;
+          sticker_id?: string | null;
+          is_anonymous?: boolean;
+          status?: 'approved' | 'pending' | 'flagged';
+          is_pinned?: boolean;
+          pinned_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          author_name?: string;
+          message?: string;
+          sticker_id?: string | null;
+          is_anonymous?: boolean;
+          status?: 'approved' | 'pending' | 'flagged';
+          is_pinned?: boolean;
+          pinned_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      site_settings: {
+        Row: {
+          id: string;
+          announcement_text: string | null;
+          is_announcement_active: boolean;
+          event_date: string | null;
+          is_countdown_active: boolean;
+          show_countdown_on_home: boolean;
+          show_medals_on_home: boolean;
+          show_cheer_on_home: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          announcement_text?: string | null;
+          is_announcement_active?: boolean;
+          event_date?: string | null;
+          is_countdown_active?: boolean;
+          show_countdown_on_home?: boolean;
+          show_medals_on_home?: boolean;
+          show_cheer_on_home?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          announcement_text?: string | null;
+          is_announcement_active?: boolean;
+          event_date?: string | null;
+          is_countdown_active?: boolean;
+          show_countdown_on_home?: boolean;
+          show_medals_on_home?: boolean;
+          show_cheer_on_home?: boolean;
+          updated_at?: string;
         };
         Relationships: [];
       };

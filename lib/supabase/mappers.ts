@@ -24,6 +24,8 @@ export function mapAthlete(row: Tables<'athletes'>): Athlete {
     position: row.position ?? undefined,
     team: row.team ?? undefined,
     avatarUrl: row.avatar_url ?? undefined,
+    isPinned: row.is_pinned,
+    pinnedOrder: row.pinned_order,
   };
 }
 
@@ -33,6 +35,7 @@ export function mapMatch(row: Tables<'matches'>): MatchSchedule {
     sportId: row.sport_id ?? '',
     sportName: row.sport_name,
     stage: row.stage,
+    matchType: row.match_type as 'versus' | 'track' || 'versus',
     teamA: {
       name: row.team_a_name,
       colorHex: row.team_a_color_hex,
@@ -47,6 +50,9 @@ export function mapMatch(row: Tables<'matches'>): MatchSchedule {
     date: row.date,
     time: row.time,
     location: row.location,
+    isPinned: row.is_pinned,
+    pinnedOrder: row.pinned_order,
+    competitors: row.competitors ? (row.competitors as unknown as MatchSchedule['competitors']) : undefined,
   };
 }
 
@@ -60,6 +66,8 @@ export function mapNews(row: Tables<'news'>): NewsItem {
     category: row.category,
     imageUrl: row.image_url ?? undefined,
     isFeatured: row.is_featured,
+    isPinned: row.is_pinned,
+    pinnedOrder: row.pinned_order,
   };
 }
 
@@ -71,6 +79,8 @@ export function mapGallery(row: Tables<'gallery'>): GalleryImage {
     imageUrl: row.image_url,
     date: row.date,
     aspectRatio: (row.aspect_ratio as GalleryImage['aspectRatio']) ?? undefined,
+    isPinned: row.is_pinned,
+    pinnedOrder: row.pinned_order,
   };
 }
 
@@ -119,6 +129,8 @@ export function assembleSports(
       rules: parseRules(sport.rules),
       athletes: sportAthletes.length > 0 ? sportAthletes : undefined,
       subCategories: subCategories.length > 0 ? subCategories : undefined,
+      isPinned: sport.is_pinned,
+      pinnedOrder: sport.pinned_order,
     };
   });
 }

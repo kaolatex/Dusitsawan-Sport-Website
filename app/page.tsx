@@ -6,24 +6,25 @@ import { motion, Variants } from 'framer-motion';
 import Container from '@/components/ui/container';
 import ImageWithFallback from '@/components/ui/image-with-fallback';
 import LoadingState, { ErrorState } from '@/components/ui/loading-state';
-import { useMatches, useMedals, useNews } from '@/hooks/useData';
-import { Trophy, Calendar, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { useMatches, useMedals, useNews, useSports, useGallery, useAthletes, useStaff, useCheerMessages, useSiteSettings } from '@/hooks/useData';
+import { Trophy, Calendar, ArrowRight, ArrowUpRight, Newspaper, Image as ImageIcon, Users, MessageSquare, Pin, UserCheck } from 'lucide-react';
+import CountdownSplash from '@/components/ui/countdown-splash';
+import AnnouncementBanner from '@/components/ui/announcement-banner';
 
 export default function HomePage() {
   const { data: medals, loading: medalsLoading, error: medalsError } = useMedals();
   const { data: matches, loading: matchesLoading, error: matchesError } = useMatches();
   const { data: news, loading: newsLoading, error: newsError } = useNews();
-
-  const topTeams = [...(medals ?? [])].sort((a, b) => b.totalPoints - a.totalPoints);
-  const featuredMatches = (matches ?? []).slice(0, 3);
-  const latestNews = (news ?? []).slice(0, 3);
+  const { data: sports, loading: sportsLoading, error: sportsError } = useSports();
+  const { data: gallery, loading: galleryLoading, error: galleryError } = useGallery();
+  const { data: athletes, loading: athletesLoading, error: athletesError } = useAthletes();
+  const { data: staff, loading: staffLoading, error: staffError } = useStaff();
+  const { data: cheer, loading: cheerLoading, error: cheerError } = useCheerMessages();
+  const { data: settings, loading: settingsLoading } = useSiteSettings();
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15 },
-    },
+    show: { opacity: 1, transition: { staggerChildren: 0.15 } },
   };
 
   const itemVariants: Variants = {
@@ -31,11 +32,32 @@ export default function HomePage() {
     show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } },
   };
 
-  const isLoading = medalsLoading || matchesLoading || newsLoading;
-  const hasError = medalsError || matchesError || newsError;
+  const isLoading = medalsLoading || matchesLoading || newsLoading || sportsLoading || galleryLoading || athletesLoading || staffLoading || cheerLoading || settingsLoading;
+  const hasError = medalsError || matchesError || newsError || sportsError || galleryError || athletesError || staffError || cheerError;
+
+  const topTeams = [...(medals ?? [])].sort((a, b) => b.totalPoints - a.totalPoints);
+
+  const pinnedItems = [
+    ...(sports?.filter(s => s.isPinned).map(s => ({ type: 'sport', order: s.pinnedOrder || 0, data: s, id: s.id })) || []),
+    ...(matches?.filter(m => m.isPinned).map(m => ({ type: 'match', order: m.pinnedOrder || 0, data: m, id: m.id })) || []),
+    ...(news?.filter(n => n.isPinned).map(n => ({ type: 'news', order: n.pinnedOrder || 0, data: n, id: n.id })) || []),
+    ...(gallery?.filter(g => g.isPinned).map(g => ({ type: 'gallery', order: g.pinnedOrder || 0, data: g, id: g.id })) || []),
+    ...(athletes?.filter(a => a.is_pinned).map(a => ({ type: 'athlete', order: a.pinned_order || 0, data: a, id: a.id })) || []),
+    ...(staff?.filter(s => s.is_pinned).map(s => ({ type: 'staff', order: s.pinned_order || 0, data: s, id: s.id })) || []),
+    ...(cheer?.filter(c => c.is_pinned).map(c => ({ type: 'cheer', order: c.pinned_order || 0, data: c, id: c.id })) || []),
+  ].sort((a, b) => a.order - b.order);
+
+  const hasAnyPinnedContent = pinnedItems.length > 0 || settings?.show_medals_on_home;
 
   return (
     <div className="relative overflow-hidden min-h-screen">
+      {settings?.is_announcement_active && settings.announcement_text && (
+        <AnnouncementBanner />
+      )}
+      {settings?.is_countdown_active && settings.event_date && (
+        <CountdownSplash />
+      )}
+
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -z-10 translate-x-1/3 -translate-y-1/3" />
       <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-accent-gold/3 rounded-full blur-3xl -z-10 -translate-x-1/2" />
 
@@ -76,17 +98,38 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex items-center justify-center gap-3.5 pt-4"
+            className="flex flex-wrap items-center justify-center gap-3.5 pt-4"
           >
+            {/* Primary / Solid */}
             <Link
               href="/schedule"
-              className="bg-primary hover:bg-primary-hover text-white text-xs font-bold tracking-wide px-6 py-3 rounded-full shadow-xs transition-colors cursor-pointer"
+              className="bg-primary hover:bg-primary-hover text-white border border-transparent text-xs font-bold tracking-wide px-6 py-3 rounded-full shadow-xs transition-colors cursor-pointer"
             >
               ตารางแข่งขันล่าสุด
             </Link>
+            
+            {/* Secondary / Semi-solid */}
+            <Link
+              href="/sports"
+              className="bg-primary/10 hover:bg-primary/20 text-primary border border-transparent text-xs font-bold tracking-wide px-6 py-3 rounded-full shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <Users size={14} className="text-primary" />
+              รายชื่อนักกีฬา
+            </Link>
+
+            {/* Ghost / Subtle Border */}
+            <Link
+              href="/cheer"
+              className="group flex items-center justify-center gap-2 bg-surface-card border border-border hover:border-primary/50 text-text-primary hover:text-primary text-xs font-bold tracking-wide px-6 py-3 rounded-full shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95"
+            >
+              <MessageSquare size={14} className="text-primary group-hover:scale-110 transition-transform" />
+              ให้กำลังใจนักกีฬา
+            </Link>
+
+            {/* Outline / Minimal */}
             <Link
               href="/about"
-              className="bg-surface-card hover:bg-surface border border-border text-text-primary text-xs font-bold tracking-wide px-6 py-3 rounded-full transition-all flex items-center gap-1 group cursor-pointer"
+              className="bg-transparent hover:bg-text-primary/5 border border-text-primary/20 text-text-primary text-xs font-bold tracking-wide px-6 py-3 rounded-full transition-all flex items-center gap-1 group cursor-pointer"
             >
               ทำความรู้จักเรา
               <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
@@ -95,162 +138,203 @@ export default function HomePage() {
         </Container>
       </section>
 
-      <section className="py-12 md:py-16 relative">
+      {/* Dynamic Pinned & Clean Slate Section */}
+      <section className="py-8 md:py-14 relative">
         <Container>
           {isLoading ? (
-            <LoadingState />
+            <LoadingState message="กำลังโหลดข้อมูลไฮไลท์..." />
           ) : hasError ? (
-            <ErrorState message={medalsError || matchesError || newsError || 'เกิดข้อผิดพลาด'} />
+            <ErrorState message="เกิดข้อผิดพลาดในการโหลดข้อมูล" />
           ) : (
             <motion.div
               variants={containerVariants}
               initial="hidden"
               whileInView="show"
               viewport={{ once: true, margin: '-80px' }}
-              className="space-y-14"
+              className="space-y-12"
             >
-              {/* Matches + Scoreboard Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <motion.div variants={itemVariants} className="lg:col-span-8 space-y-6">
+              {/* Clean Slate Empty Banner */}
+              {!hasAnyPinnedContent && (
+                <div className="bg-surface-card border border-border/30 rounded-3xl p-10 text-center space-y-4 shadow-sm max-w-2xl mx-auto">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-primary">
+                    <Pin size={24} />
+                  </div>
+                  <h3 className="text-xl font-bold text-text-primary">
+                    ยังไม่มีรายการปักหมุดบนหน้าแรก
+                  </h3>
+                  <p className="text-xs text-text-secondary leading-relaxed max-w-md mx-auto">
+                    หน้าแรกถูกกำหนดเป็น Clean Slate เพื่อรอรับข้อมูลแมตช์สำคัญ ข่าวสาร หรือตารางคะแนนที่แอดมินปักหมุดผ่านศูนย์ควบคุม (Admin Panel)
+                  </p>
+                </div>
+              )}
+
+              {settings?.show_medals_on_home && (
+                <motion.div variants={itemVariants} className="space-y-6">
                   <div className="flex items-center justify-between border-b border-border/40 pb-4">
                     <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
-                      <Calendar size={18} className="text-primary" />
-                      การแข่งขันนัดสำคัญ
+                      <Trophy size={18} className="text-accent-gold" />
+                      สรุปเหรียญรางวัล
                     </h2>
-                    <Link href="/schedule" className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5">
-                      ทั้งหมด <ArrowUpRight size={13} />
+                    <Link href="/scoreboard" className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5">
+                      ดูคะแนนเต็ม <ArrowUpRight size={13} />
                     </Link>
                   </div>
-
-                  <div className="space-y-4">
-                    {featuredMatches.length === 0 ? (
-                      <p className="text-xs text-text-secondary text-center py-6">ยังไม่มีการแข่งขัน</p>
-                    ) : (
-                      featuredMatches.map(match => (
-                        <div
-                          key={match.id}
-                          className="bg-surface-card border border-border/40 rounded-2xl p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-primary/10 transition-colors shadow-xs"
-                        >
-                          <div className="flex flex-col gap-1 shrink-0">
-                            <span className="text-[10px] text-accent-gold font-bold uppercase tracking-wider">{match.sportName}</span>
-                            <h4 className="font-bold text-text-primary text-xs sm:text-sm">{match.stage}</h4>
-                            <span className="text-[10px] text-text-secondary">{match.time} น. @ {match.location}</span>
-                          </div>
-
-                          <div className="flex items-center gap-4 sm:gap-6 bg-surface/50 border border-border/20 px-4 py-2.5 rounded-xl shrink-0">
-                            <div className="flex items-center gap-1.5 text-right w-20 justify-end">
-                              <span className="text-[11px] font-bold text-text-primary truncate">{match.teamA.name.split(' ').pop()}</span>
-                              <div className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: match.teamA.colorHex }} />
-                            </div>
-                            <span className="text-xs font-mono font-bold text-text-secondary shrink-0 min-w-[36px] text-center">
-                              {match.status === 'completed' ? (
-                                <span className="text-primary">{match.teamA.score} - {match.teamB.score}</span>
-                              ) : (
-                                <span className="text-[10px] tracking-widest">VS</span>
-                              )}
-                            </span>
-                            <div className="flex items-center gap-1.5 text-left w-20 justify-start">
-                              <div className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: match.teamB.colorHex }} />
-                              <span className="text-[11px] font-bold text-text-primary truncate">{match.teamB.name.split(' ').pop()}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </motion.div>
-
-                <motion.div variants={itemVariants} className="lg:col-span-4">
-                  <div className="bg-surface-card border border-border/40 rounded-3xl p-6 shadow-xs space-y-6 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/3 rounded-full translate-x-12 -translate-y-12" />
-                    <div className="border-b border-border/40 pb-4 flex items-center justify-between">
-                      <h3 className="font-extrabold text-text-primary text-sm flex items-center gap-2">
-                        <Trophy size={16} className="text-primary" />
-                        สรุปอันดับคะแนนรวม
-                      </h3>
-                      <Link href="/scoreboard" className="text-[10px] font-bold text-primary hover:underline">
-                        ดูแบบละเอียด
-                      </Link>
+                  <div className="bg-surface-card border border-border/40 rounded-3xl p-4 sm:p-6 shadow-xs overflow-hidden">
+                    <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 sm:gap-6 text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-4 px-2">
+                      <div>คณะสี</div>
+                      <div className="w-8 sm:w-12 text-center text-accent-gold">🥇</div>
+                      <div className="w-8 sm:w-12 text-center text-[#C0C0C0]">🥈</div>
+                      <div className="w-8 sm:w-12 text-center text-[#CD7F32]">🥉</div>
+                      <div className="w-10 sm:w-14 text-center">รวม</div>
                     </div>
-                    <div className="space-y-3.5">
-                      {topTeams.map((team, idx) => (
+                    <div className="space-y-2">
+                      {topTeams.map((team, index) => (
                         <div
                           key={team.id}
-                          className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
-                            team.id === 'team-pink'
-                              ? 'bg-primary/5 border-primary/20 shadow-2xs'
-                              : 'bg-transparent border-border/40'
+                          className={`grid grid-cols-[1fr_auto_auto_auto_auto] gap-2 sm:gap-6 items-center p-3 sm:p-4 rounded-2xl border transition-all ${
+                            index === 0
+                              ? 'bg-accent-gold/5 border-accent-gold/20'
+                              : 'bg-surface border-border/30 hover:border-border/60'
                           }`}
                         >
                           <div className="flex items-center gap-3">
-                            <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] ${
-                              idx === 0 ? 'bg-accent-gold text-white' : 'bg-surface text-text-secondary'
-                            }`}>
-                              {idx + 1}
+                            <span className={`text-xs font-bold w-4 ${index === 0 ? 'text-accent-gold' : 'text-text-secondary'}`}>
+                              {index + 1}
                             </span>
-                            <div className="flex flex-col">
-                              <span className="font-bold text-text-primary text-xs">{team.name.split(' (')[0]}</span>
-                              <div className="flex items-center gap-2 text-[9px] text-text-secondary mt-0.5">
-                                <span>🥇 {team.gold}</span>
-                                <span>🥈 {team.silver}</span>
-                                <span>🥉 {team.bronze}</span>
-                              </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: team.colorHex }} />
+                              <span className="font-bold text-text-primary text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{team.name}</span>
                             </div>
                           </div>
-                          <span className="font-mono font-bold text-primary text-xs bg-surface-card border border-border/40 px-2.5 py-1 rounded-lg">
-                            {team.totalPoints}
-                          </span>
+                          <div className="w-8 sm:w-12 text-center font-bold text-text-primary text-xs sm:text-sm">{team.gold}</div>
+                          <div className="w-8 sm:w-12 text-center font-bold text-text-primary text-xs sm:text-sm">{team.silver}</div>
+                          <div className="w-8 sm:w-12 text-center font-bold text-text-primary text-xs sm:text-sm">{team.bronze}</div>
+                          <div className="w-10 sm:w-14 text-center font-extrabold text-primary text-xs sm:text-sm">{team.totalPoints}</div>
                         </div>
                       ))}
                     </div>
                   </div>
                 </motion.div>
-              </div>
+              )}
 
-              {/* News Section - Full Width 3 Columns */}
-              <motion.div variants={itemVariants} className="space-y-6">
-                <div className="flex items-center justify-between border-b border-border/40 pb-4">
-                  <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
-                    <Trophy size={18} className="text-primary" />
-                    ข่าวสารและเหตุการณ์สำคัญ
-                  </h2>
-                  <Link href="/news" className="text-xs font-bold text-primary hover:underline flex items-center gap-0.5">
-                    ข่าวทั้งหมด <ArrowUpRight size={13} />
-                  </Link>
-                </div>
+              {pinnedItems.map((item) => (
+                <motion.div key={`${item.type}-${item.id}`} variants={itemVariants} className="space-y-6">
+                  {item.type === 'match' && (
+                    <div className="bg-surface-card border border-border/40 rounded-2xl p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-primary/10 transition-colors shadow-xs">
+                      <div className="flex flex-col gap-1 shrink-0">
+                        <span className="text-[10px] text-accent-gold font-bold uppercase tracking-wider">{(item.data as any).sportName}</span>
+                        <h4 className="font-bold text-text-primary text-xs sm:text-sm">{(item.data as any).stage}</h4>
+                        <span className="text-[10px] text-text-secondary">{(item.data as any).time} น. @ {(item.data as any).location}</span>
+                      </div>
+                      <div className="flex items-center gap-4 sm:gap-6 bg-surface/50 border border-border/20 px-4 py-2.5 rounded-xl shrink-0">
+                        <div className="flex items-center gap-1.5 text-right w-20 justify-end">
+                          <span className="text-[11px] font-bold text-text-primary truncate">{(item.data as any).teamA.name}</span>
+                          <div className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: (item.data as any).teamA.colorHex }} />
+                        </div>
+                        <span className="text-xs font-mono font-bold text-text-secondary shrink-0 min-w-[36px] text-center">
+                          {(item.data as any).status === 'completed' ? (
+                            <span className="text-primary">{(item.data as any).teamA.score} - {(item.data as any).teamB.score}</span>
+                          ) : (
+                            <span className="text-[10px] tracking-widest">VS</span>
+                          )}
+                        </span>
+                        <div className="flex items-center gap-1.5 text-left w-20">
+                          <div className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/10" style={{ backgroundColor: (item.data as any).teamB.colorHex }} />
+                          <span className="text-[11px] font-bold text-text-primary truncate">{(item.data as any).teamB.name}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {latestNews.length === 0 ? (
-                    <p className="text-xs text-text-secondary col-span-full text-center py-6">ยังไม่มีข่าวสาร</p>
-                  ) : (
-                    latestNews.map(item => (
-                      <Link
-                        key={item.id}
-                        href="/news"
-                        className="bg-surface-card border border-border/40 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 hover:-translate-y-0.5 transition-all flex flex-col group"
-                      >
-                        {item.imageUrl && (
-                          <ImageWithFallback
-                            src={item.imageUrl}
-                            alt={item.title}
-                            containerClassName="h-52 md:h-56 rounded-2xl"
-                            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                          />
-                        )}
-                        <div className="p-4 flex flex-col gap-2 flex-grow">
-                          <span className="text-[9px] font-bold text-accent-gold uppercase tracking-wider">{item.date}</span>
-                          <h3 className="font-bold text-text-primary text-xs line-clamp-2 group-hover:text-primary transition-colors leading-snug">
-                            {item.title}
+                  {item.type === 'news' && (
+                    <Link href={`/news`} className="block group">
+                      <div className="bg-surface-card rounded-3xl overflow-hidden border border-border/40 hover:border-primary/30 transition-all shadow-xs flex flex-col sm:flex-row items-stretch">
+                        <div className="w-full sm:w-48 h-48 sm:h-auto shrink-0 relative overflow-hidden">
+                          {(item.data as any).imageUrl ? (
+                            <ImageWithFallback src={(item.data as any).imageUrl} alt={(item.data as any).title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          ) : (
+                            <div className="w-full h-full bg-surface flex items-center justify-center text-primary/20"><Newspaper size={32} /></div>
+                          )}
+                        </div>
+                        <div className="p-5 flex flex-col justify-center">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-primary mb-2">{(item.data as any).category}</span>
+                          <h3 className="font-extrabold text-text-primary text-sm sm:text-base leading-snug mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                            {(item.data as any).title}
                           </h3>
-                          <p className="text-[11px] text-text-secondary line-clamp-2 leading-relaxed">
-                            {item.excerpt}
+                          <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">
+                            {(item.data as any).excerpt}
                           </p>
                         </div>
-                      </Link>
-                    ))
+                      </div>
+                    </Link>
                   )}
-                </div>
-              </motion.div>
+
+                  {item.type === 'gallery' && (
+                    <div className="bg-surface border border-border/40 p-2 rounded-3xl shadow-sm relative group overflow-hidden">
+                      <div className="aspect-[4/3] rounded-2xl overflow-hidden">
+                        <ImageWithFallback src={(item.data as any).imageUrl} alt={(item.data as any).title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      </div>
+                      <div className="absolute inset-x-4 bottom-4 p-4 rounded-2xl bg-surface-card/80 backdrop-blur-md border border-white/10 shadow-lg">
+                        <h4 className="font-bold text-text-primary text-xs">{(item.data as any).title}</h4>
+                        <p className="text-[10px] text-text-secondary mt-0.5">{(item.data as any).date}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {item.type === 'athlete' && (
+                    <div className="bg-surface border border-border/40 rounded-3xl p-5 shadow-xs flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full overflow-hidden bg-surface shrink-0 border-2 border-primary/20">
+                         {(item.data as any).avatar_url ? (
+                           <img src={(item.data as any).avatar_url} alt={(item.data as any).name} className="w-full h-full object-cover" />
+                         ) : (
+                           <Users className="w-6 h-6 m-auto text-primary" />
+                         )}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-text-primary text-sm">{(item.data as any).name}</h4>
+                        <p className="text-xs text-primary font-medium">{(item.data as any).team} • {(item.data as any).position}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {item.type === 'staff' && (
+                    <div className="bg-surface border border-border/40 rounded-3xl p-5 shadow-xs flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-full overflow-hidden bg-surface shrink-0 border-2 border-primary/20">
+                         {(item.data as any).image_url ? (
+                           <img src={(item.data as any).image_url} alt={(item.data as any).name} className="w-full h-full object-cover" />
+                         ) : (
+                           <UserCheck className="w-6 h-6 m-auto text-primary" />
+                         )}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-text-primary text-sm">{(item.data as any).name}</h4>
+                        <p className="text-xs text-text-secondary">{(item.data as any).position} • {(item.data as any).department}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {item.type === 'cheer' && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-3xl p-6 shadow-xs relative">
+                       <MessageSquare className="absolute top-4 right-4 text-primary/10" size={48} />
+                       <p className="font-medium text-text-primary text-sm italic mb-4 relative z-10">"{(item.data as any).message}"</p>
+                       <p className="text-xs text-text-secondary font-bold">- {(item.data as any).author_name}</p>
+                    </div>
+                  )}
+
+                  {item.type === 'sport' && (
+                    <div className="bg-surface-card border border-border/40 rounded-3xl p-6 shadow-xs flex items-center gap-4">
+                       <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                         <Trophy size={20} />
+                       </div>
+                       <div>
+                         <h4 className="font-bold text-text-primary text-sm">{(item.data as any).name}</h4>
+                         <p className="text-xs text-text-secondary line-clamp-1">{(item.data as any).description}</p>
+                       </div>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+
             </motion.div>
           )}
         </Container>

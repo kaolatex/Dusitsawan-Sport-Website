@@ -7,7 +7,7 @@ import SectionTitle from '@/components/ui/section-title';
 import LoadingState, { ErrorState } from '@/components/ui/loading-state';
 import { useSports } from '@/hooks/useData';
 import { Athlete } from '@/types';
-import { Trophy, Target, Activity, Gamepad2, Zap, ChevronRight, User } from 'lucide-react';
+import { Trophy, Target, Activity, Gamepad2, Zap, ChevronRight, User, Search } from 'lucide-react';
 
 const iconMap: Record<string, React.ComponentType<{ className?: string; size?: number }>> = {
   Trophy,
@@ -95,6 +95,7 @@ export default function SportsPage() {
   const { data: sports, loading, error } = useSports();
   const [activeSport, setActiveSport] = useState<string | null>(null);
   const [activeSubCatId, setActiveSubCatId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   React.useEffect(() => {
     if (sports && sports.length > 0 && !activeSport) {
@@ -122,8 +123,15 @@ export default function SportsPage() {
   }, [activeSubCatId, currentSport]);
 
   const displayRules = activeSubCat?.rules || currentSport?.rules || [];
-  const displayAthletes = activeSubCat?.athletes || currentSport?.athletes || [];
   const displayDescription = activeSubCat?.description || currentSport?.description || '';
+  
+  const displayAthletesRaw = activeSubCat?.athletes || currentSport?.athletes || [];
+  const displayAthletes = displayAthletesRaw.filter(athlete => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    const searchString = `${athlete.name} ${athlete.position || ''} ${athlete.team || ''}`.toLowerCase();
+    return searchString.includes(query);
+  });
 
   const renderIcon = (name?: string, size?: number) => {
     if (!name) return <Trophy className="w-5 h-5" />;
@@ -268,7 +276,7 @@ export default function SportsPage() {
             </div>
 
             <div className="bg-surface-card border border-border/40 p-6 md:p-8 rounded-3xl shadow-xs">
-              <div className="flex items-center justify-between pb-5 border-b border-border/40">
+              <div className="flex items-center justify-between pb-5 border-b border-border/40 flex-wrap gap-4">
                 <h4 className="font-bold text-text-primary text-sm flex items-center gap-2">
                   <User size={15} className="text-primary" />
                   รายชื่อนักกีฬา
@@ -278,11 +286,26 @@ export default function SportsPage() {
                     </span>
                   )}
                 </h4>
-                {displayAthletes.length > 0 && (
-                  <span className="text-[10px] text-text-secondary font-medium bg-surface px-2.5 py-0.5 rounded-full">
-                    {displayAthletes.length} คน
-                  </span>
-                )}
+                
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                  <div className="relative w-full md:w-64">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search size={14} className="text-text-secondary" />
+                    </div>
+                    <input 
+                      type="text" 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-surface border border-border/50 rounded-xl py-2 pl-9 pr-3 text-xs font-medium text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                      placeholder="ค้นหานักกีฬา, ตำแหน่ง, คณะสี..."
+                    />
+                  </div>
+                  {displayAthletes.length > 0 && (
+                    <span className="text-[10px] text-text-secondary font-medium bg-surface px-2.5 py-0.5 rounded-full whitespace-nowrap hidden md:block">
+                      {displayAthletes.length} คน
+                    </span>
+                  )}
+                </div>
               </div>
 
               <AnimatePresence mode="wait">

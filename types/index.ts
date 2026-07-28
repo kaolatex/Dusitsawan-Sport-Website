@@ -7,6 +7,8 @@ export interface NewsItem {
   category: 'sports' | 'announcement' | 'activity';
   imageUrl?: string;
   isFeatured?: boolean;
+  isPinned?: boolean;
+  pinnedOrder?: number;
 }
 
 export interface TeamScore {
@@ -27,6 +29,8 @@ export interface Athlete {
   position?: string;
   team?: string;
   avatarUrl?: string;
+  isPinned?: boolean;
+  pinnedOrder?: number;
 }
 
 export interface SubCategory {
@@ -45,6 +49,8 @@ export interface SportCategory {
   rules?: string[];
   subCategories?: SubCategory[];
   athletes?: Athlete[];
+  isPinned?: boolean;
+  pinnedOrder?: number;
 }
 
 export type MatchStatus = 'upcoming' | 'live' | 'completed';
@@ -54,6 +60,7 @@ export interface MatchSchedule {
   sportId: string;
   sportName: string;
   stage: string; // e.g., "รอบชิงชนะเลิศ", "รอบแรก"
+  matchType: 'versus' | 'track';
   teamA: {
     name: string;
     colorHex: string;
@@ -64,10 +71,19 @@ export interface MatchSchedule {
     colorHex: string;
     score?: number;
   };
+  competitors?: {
+    lane: number;
+    name: string;
+    colorHex: string;
+    score?: number;
+    place?: number;
+  }[];
   status: MatchStatus;
   date: string;
   time: string;
   location: string;
+  isPinned?: boolean;
+  pinnedOrder?: number;
 }
 
 export interface GalleryImage {
@@ -77,6 +93,8 @@ export interface GalleryImage {
   imageUrl: string;
   date: string;
   aspectRatio?: 'portrait' | 'landscape' | 'square';
+  isPinned?: boolean;
+  pinnedOrder?: number;
 }
 
 export interface NavItem {
@@ -93,4 +111,6 @@ export interface Staff {
   displayOrder: number;
   imageUrl?: string;
   type?: string;
+  isPinned?: boolean;
+  pinnedOrder?: number;
 }

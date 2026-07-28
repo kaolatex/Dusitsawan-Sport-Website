@@ -94,6 +94,12 @@ export async function upsertSport(payload: TablesInsert<'sports'>) {
   if (error) throw error;
 }
 
+export async function updateSport(id: string, payload: TablesUpdate<'sports'>) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('sports').update(payload).eq('id', id);
+  if (error) throw error;
+}
+
 export async function deleteSport(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('sports').delete().eq('id', id);
@@ -136,6 +142,12 @@ export async function upsertNews(payload: TablesInsert<'news'>) {
   if (error) throw error;
 }
 
+export async function updateNews(id: string, payload: TablesUpdate<'news'>) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('news').update(payload).eq('id', id);
+  if (error) throw error;
+}
+
 export async function deleteNews(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('news').delete().eq('id', id);
@@ -148,6 +160,12 @@ export async function upsertGallery(payload: TablesInsert<'gallery'>) {
   if (error) throw error;
 }
 
+export async function updateGallery(id: string, payload: TablesUpdate<'gallery'>) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('gallery').update(payload).eq('id', id);
+  if (error) throw error;
+}
+
 export async function deleteGallery(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('gallery').delete().eq('id', id);
@@ -157,6 +175,12 @@ export async function deleteGallery(id: string) {
 export async function upsertAthlete(payload: TablesInsert<'athletes'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('athletes').upsert(payload);
+  if (error) throw error;
+}
+
+export async function updateAthlete(id: string, payload: TablesUpdate<'athletes'>) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('athletes').update(payload).eq('id', id);
   if (error) throw error;
 }
 
@@ -196,9 +220,67 @@ export async function upsertStaff(payload: TablesInsert<'staff'>) {
   if (error) throw error;
 }
 
+export async function updateStaff(id: string, payload: TablesUpdate<'staff'>) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('staff').update(payload).eq('id', id);
+  if (error) throw error;
+}
+
 export async function deleteStaff(id: string) {
   const supabase = getSupabase();
   const { error } = await supabase.from('staff').delete().eq('id', id);
   if (error) throw error;
 }
+
+export async function fetchCheerMessages() {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('cheer_wall')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function submitCheerMessage(payload: TablesInsert<'cheer_wall'>) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('cheer_wall').insert({
+    id: `cheer-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    ...payload,
+  });
+  if (error) throw error;
+}
+
+export async function updateCheerStatus(id: string, status: 'approved' | 'pending' | 'flagged') {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('cheer_wall').update({ status }).eq('id', id);
+  if (error) throw error;
+}
+
+export async function updateCheerWall(id: string, payload: TablesUpdate<'cheer_wall'>) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('cheer_wall').update(payload).eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteCheerMessage(id: string) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('cheer_wall').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function fetchSiteSettings() {
+  const supabase = getSupabase();
+  const { data, error } = await supabase.from('site_settings').select('*').limit(1).single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data ?? null;
+}
+
+export async function upsertSiteSettings(payload: TablesInsert<'site_settings'>) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('site_settings').upsert({ id: 'main_settings', ...payload });
+  if (error) throw error;
+}
+
 

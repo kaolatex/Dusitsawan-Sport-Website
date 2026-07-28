@@ -7,7 +7,23 @@ import SectionTitle from '@/components/ui/section-title';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { fetchStaff } from '@/lib/supabase/services';
 import type { Tables } from '@/lib/supabase/database.types';
-import { ShieldCheck, Compass, Heart, Users, User, Crown, Phone, Sparkles } from 'lucide-react';
+import { ShieldCheck, Compass, Heart, Users, User, Crown, Phone, Sparkles, MapPin, Globe, Camera, Share2, ExternalLink } from 'lucide-react';
+
+/* ==========================================================================
+   DEVELOPER_NOTE: CONTACT DETAILS CONFIGURATION
+   แก้ไขข้อมูลช่องทางติดต่อโรงเรียน คณะสี และสภานักเรียนได้ที่นี่เลยครับ
+   ========================================================================== */
+const CONTACT_INFO = {
+  schoolName: 'โรงเรียนสาธิตฯ / สถานศึกษา',
+  address: '123 ถนนวิภาวดีรังสิต แขวงลาดยาว เขตจตุจักร กรุงเทพมหานคร 10900',
+  facultyIg: '@dusitsawan.pink',
+  facultyIgUrl: 'https://instagram.com',
+  studentCouncilIg: '@student.council',
+  studentCouncilIgUrl: 'https://instagram.com',
+  facebookPage: 'คณะ 2 สีชมพู - ดุสิตสวรรค์',
+  facebookUrl: 'https://facebook.com',
+  telephone: '02-123-4567 / 081-999-8888',
+};
 
 function getInitial(name: string): string {
   const cleanName = name.replace(/^(นาย|น\.ส\.|นาง|ด\.ช\.|ด\.ญ\.)\s*/g, '');
@@ -24,12 +40,12 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4 }}
-      className="bg-surface-card border border-border/40 rounded-2xl p-5 flex items-center gap-4 hover:border-primary/20 hover:shadow-xs transition-all group relative overflow-hidden"
+      className="bg-surface-card rounded-2xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-all group relative overflow-hidden border border-border/20 active:scale-98"
     >
       <div className="absolute top-0 right-0 w-20 h-20 bg-primary/3 rounded-full translate-x-8 -translate-y-8 group-hover:scale-125 transition-transform" />
 
       {/* Avatar */}
-      <div className="w-14 h-14 rounded-full shrink-0 overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-accent-gold/15 flex items-center justify-center shadow-xs">
+      <div className="w-12 h-12 rounded-full shrink-0 overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-accent-gold/15 flex items-center justify-center shadow-2xs">
         {hasAvatar ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -39,35 +55,35 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <span className="text-primary font-extrabold text-base select-none">
+          <span className="text-primary font-extrabold text-sm select-none">
             {getInitial(member.name)}
           </span>
         )}
       </div>
 
       {/* Details */}
-      <div className="flex flex-col min-w-0 space-y-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h5 className="font-bold text-text-primary text-sm truncate group-hover:text-primary transition-colors">
+      <div className="flex flex-col min-w-0 space-y-0.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <h5 className="font-bold text-text-primary text-xs truncate group-hover:text-primary transition-colors">
             {member.name}
           </h5>
           {member.position && (
-            <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/15">
-              <Crown size={9} />
+            <span className="inline-flex items-center gap-0.5 text-[8px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              <Crown size={8} />
               {member.position}
             </span>
           )}
         </div>
 
         {member.department && (
-          <p className="text-[11px] text-text-secondary font-medium">
+          <p className="text-[10px] text-text-secondary font-medium">
             {member.department}
           </p>
         )}
 
         {member.contact_info && (
-          <p className="text-[10px] text-accent-gold flex items-center gap-1 font-mono pt-0.5">
-            <Phone size={10} className="shrink-0" />
+          <p className="text-[9px] text-accent-gold flex items-center gap-1 font-mono pt-0.5">
+            <Phone size={9} className="shrink-0" />
             {member.contact_info}
           </p>
         )}
@@ -94,7 +110,6 @@ export default function AboutPage() {
       groups[categoryType].push(member);
     });
 
-    // Sort items within each category by display_order ascending
     Object.keys(groups).forEach(key => {
       groups[key].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
     });
@@ -126,12 +141,12 @@ export default function AboutPage() {
   ];
 
   return (
-    <Container className="py-16 md:py-24">
+    <Container className="py-10 md:py-18">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="space-y-20"
+        className="space-y-10"
       >
         {/* Header Title */}
         <SectionTitle
@@ -140,67 +155,162 @@ export default function AboutPage() {
           highlightWord="ดุสิตสวรรค์ธัญมหาปราสาท"
         />
 
-        {/* Content Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6 text-text-secondary leading-relaxed text-sm">
-            <p>
-              ชื่อคณะสี <span className="text-primary font-semibold">"ดุสิตสวรรค์ธัญมหาปราสาท"</span> ได้รับแรงบันดาลใจจากแดนดุสิตซึ่งเป็นสวรรค์ชั้นที่สี่อันพรั่งพร้อมไปด้วยความดีงามและความสงบสุข ผสานกับคำว่า "ธัญ" (ความอุดมสมบูรณ์) และ "มหาปราสาท" (ความยิ่งใหญ่และสง่างาม)
-            </p>
-            <p>
-              เราเชื่อในการแสดงออกที่เรียบง่ายแต่ทรงพลัง (Less is More) โดยการนำเสนอแนวคิดแบบไทยร่วมสมัย หลีกเลี่ยงรูปแบบดั้งเดิมที่หนักเกินไป แต่เลือกดึงเอาจิตวิญญาณ ความอ่อนช้อย และสีสันอันนุ่มนวลของสถาปัตยกรรมไทย มาผสานเข้ากับงานกราฟิกและดีไซน์ระดับสากล
-            </p>
-            <p>
-              ในงานกีฬาสีปีนี้ คณะสีชมพูพร้อมแล้วที่จะแสดงศักยภาพของนักกีฬาในทุกประเภท พร้อมด้วยสแตนด์เชียร์และขบวนพาเหรดที่สะท้อนถึงความคิดสร้างสรรค์อันไร้ขีดจำกัด
-            </p>
+        {/* Compact Layout for Mobile-First */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* About Concept (7 cols) */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="bg-surface-card rounded-3xl p-6 md:p-8 shadow-sm space-y-4 border border-border/20">
+              <h3 className="text-xl font-extrabold text-gradient-primary">
+                สัญลักษณ์แห่งชัยชนะและความสง่างาม
+              </h3>
+              <p className="text-text-secondary text-xs sm:text-sm leading-relaxed">
+                ชื่อคณะสี <span className="text-primary font-semibold">"ดุสิตสวรรค์ธัญมหาปราสาท"</span> ได้รับแรงบันดาลใจจากแดนดุสิตซึ่งเป็นสวรรค์ชั้นที่สี่ ผสานกับคำว่า "ธัญ" (ความอุดมสมบูรณ์) และ "มหาปราสาท" (ความยิ่งใหญ่)
+              </p>
+              <p className="text-text-secondary text-xs sm:text-sm leading-relaxed">
+                เราเชื่อในการนำเสนอแนวคิดแบบไทยร่วมสมัย (Contemporary Thai) ดึงเอาจิตวิญญาณและความอ่อนช้อยของศิลปะไทย มาผสานกับสุนทรียศาสตร์ดิจิทัลยุคใหม่
+              </p>
+              <div className="flex items-center gap-2 pt-2">
+                <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold tracking-wider">
+                  EST. 2026
+                </span>
+                <span className="px-3 py-1 rounded-full bg-accent-gold/10 text-accent-gold text-[10px] font-semibold tracking-wider">
+                  CONTEMPORARY THAI
+                </span>
+              </div>
+            </div>
+
+            {/* Core Values 2x2 Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {values.map((item, index) => (
+                <div
+                  key={index}
+                  className="bg-surface-card rounded-2xl p-4 shadow-sm border border-border/20 hover:shadow-md transition-all active:scale-98"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-primary/5 flex items-center justify-center mb-2 text-primary">
+                    {item.icon}
+                  </div>
+                  <h4 className="font-bold text-text-primary text-xs mb-1">{item.title}</h4>
+                  <p className="text-text-secondary text-[11px] leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 via-primary/5 to-accent-gold/10 p-8 border border-primary/10 flex flex-col justify-center min-h-[280px]">
-            <span className="text-7xl font-extrabold text-primary/10 absolute right-6 bottom-4 select-none">
-              PINK 02
-            </span>
-            <h3 className="text-xl font-bold text-gradient-primary mb-3">
-              สัญลักษณ์แห่งชัยชนะและความสง่างาม
-            </h3>
-            <p className="text-xs text-text-secondary leading-relaxed mb-6">
-              สีชมพูเข้ม (#E6007E) เป็นตัวแทนของความรัก ความสามัคคี และพลังขับเคลื่อนอันแรงกล้า ผนวกกับสีทองอ่อน (#D4AF37) ที่เข้ามาช่วยแต่งแต้มความสง่างามและความเป็นเลิศ
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold tracking-wider">
-                EST. 2026
+
+          {/* Contact Card (5 cols) - Apple Minimalist Compact Card */}
+          <div className="lg:col-span-5 bg-surface-card rounded-3xl p-6 shadow-md border border-border/20 space-y-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-28 h-28 bg-primary/5 rounded-full translate-x-8 -translate-y-8" />
+
+            <div className="space-y-1 border-b border-border/30 pb-3">
+              <span className="text-[9px] uppercase font-bold tracking-wider px-2.5 py-0.5 bg-primary/10 text-primary rounded-full inline-block">
+                Contact & Socials
               </span>
-              <span className="px-3 py-1 rounded-full bg-accent-gold/10 text-accent-gold text-[10px] font-semibold tracking-wider">
-                CONTEMPORARY THAI
-              </span>
+              <h3 className="text-base font-extrabold text-text-primary flex items-center gap-2">
+                <MapPin size={16} className="text-primary" />
+                ช่องทางติดต่อศูนย์ประสานงาน
+              </h3>
+            </div>
+
+            {/* Contact Items Stack */}
+            <div className="space-y-2.5">
+              {/* School Address */}
+              <div className="flex items-start gap-3 p-3 rounded-2xl bg-surface/60 border border-border/20 shadow-2xs">
+                <MapPin size={15} className="text-primary shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-text-secondary uppercase">ที่อยู่โรงเรียน</span>
+                  <span className="text-xs font-semibold text-text-primary leading-snug">{CONTACT_INFO.address}</span>
+                </div>
+              </div>
+
+              {/* Faculty IG */}
+              <a
+                href={CONTACT_INFO.facultyIgUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-between p-3 rounded-2xl bg-surface/60 border border-border/20 hover:border-primary/30 transition-all shadow-2xs group cursor-pointer active:scale-98"
+              >
+                <div className="flex items-center gap-3">
+                  <Camera size={15} className="text-primary shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-text-secondary uppercase">IG คณะ 2 สีชมพู</span>
+                    <span className="text-xs font-semibold text-text-primary">{CONTACT_INFO.facultyIg}</span>
+                  </div>
+                </div>
+                <ExternalLink size={12} className="text-text-secondary group-hover:text-primary transition-colors" />
+              </a>
+
+              {/* Student Council IG */}
+              <a
+                href={CONTACT_INFO.studentCouncilIgUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-between p-3 rounded-2xl bg-surface/60 border border-border/20 hover:border-primary/30 transition-all shadow-2xs group cursor-pointer active:scale-98"
+              >
+                <div className="flex items-center gap-3">
+                  <Camera size={15} className="text-accent-gold shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-text-secondary uppercase">IG สภานักเรียน</span>
+                    <span className="text-xs font-semibold text-text-primary">{CONTACT_INFO.studentCouncilIg}</span>
+                  </div>
+                </div>
+                <ExternalLink size={12} className="text-text-secondary group-hover:text-accent-gold transition-colors" />
+              </a>
+
+              {/* School Facebook */}
+              <a
+                href={CONTACT_INFO.facebookUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-between p-3 rounded-2xl bg-surface/60 border border-border/20 hover:border-primary/30 transition-all shadow-2xs group cursor-pointer active:scale-98"
+              >
+                <div className="flex items-center gap-3">
+                  <Globe size={15} className="text-blue-500 shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-text-secondary uppercase">เพจ Facebook</span>
+                    <span className="text-xs font-semibold text-text-primary truncate max-w-[180px]">{CONTACT_INFO.facebookPage}</span>
+                  </div>
+                </div>
+                <ExternalLink size={12} className="text-text-secondary group-hover:text-blue-500 transition-colors" />
+              </a>
+
+              {/* Telephone */}
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-surface/60 border border-border/20 shadow-2xs">
+                <Phone size={15} className="text-primary shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-text-secondary uppercase">โทรศัพท์ติดต่อ</span>
+                  <span className="text-xs font-semibold text-text-primary font-mono">{CONTACT_INFO.telephone}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Dynamic Staff & Executive Section */}
-        <div className="space-y-12 pt-6 border-t border-border/40">
-          <div className="text-center space-y-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-xs font-semibold text-primary">
+        <div className="space-y-6 pt-6 border-t border-border/30">
+          <div className="text-center space-y-1">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-xs font-semibold text-primary shadow-2xs">
               <Sparkles size={13} />
               คณะผู้จัดทำ & เจ้าหน้าที่
             </span>
-            <h3 className="text-2xl font-extrabold text-text-primary">
+            <h3 className="text-xl md:text-2xl font-extrabold text-text-primary">
               ทีมงานผู้อยู่เบื้องหลังความสำเร็จ
             </h3>
           </div>
 
           {Object.keys(groupedStaff).length > 0 ? (
-            <div className="space-y-10">
+            <div className="space-y-6">
               {Object.keys(groupedStaff).map((categoryType) => (
-                <div key={categoryType} className="space-y-5">
-                  <div className="flex items-center gap-3 border-b border-border/40 pb-3">
-                    <User size={16} className="text-primary" />
-                    <h4 className="font-bold text-text-primary text-base uppercase tracking-wider">
+                <div key={categoryType} className="space-y-3">
+                  <div className="flex items-center gap-2 border-b border-border/30 pb-2">
+                    <User size={15} className="text-primary" />
+                    <h4 className="font-bold text-text-primary text-xs uppercase tracking-wider">
                       {categoryType}
                     </h4>
-                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-surface text-text-secondary font-mono border border-border/30">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface text-text-secondary font-mono border border-border/20">
                       {groupedStaff[categoryType].length} คน
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {groupedStaff[categoryType].map((member) => (
                       <StaffCard key={member.id} member={member} />
                     ))}
@@ -209,33 +319,10 @@ export default function AboutPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-10 bg-surface-card border border-border/40 rounded-2xl">
+            <div className="text-center py-8 bg-surface-card rounded-2xl shadow-sm border border-border/20">
               <p className="text-xs text-text-secondary">กำลังอัปเดตข้อมูลเจ้าหน้าที่ประจำคณะ</p>
             </div>
           )}
-        </div>
-
-        {/* Values Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-border/40">
-          {values.map((item, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index, duration: 0.4 }}
-              className="bg-surface-card border border-border/40 p-6 rounded-2xl hover:shadow-xs hover:border-primary/20 transition-all group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
-                {item.icon}
-              </div>
-              <h4 className="font-semibold text-text-primary text-sm mb-2">
-                {item.title}
-              </h4>
-              <p className="text-text-secondary text-xs leading-relaxed">
-                {item.desc}
-              </p>
-            </motion.div>
-          ))}
         </div>
       </motion.div>
     </Container>
