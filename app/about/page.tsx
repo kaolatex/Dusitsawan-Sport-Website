@@ -9,22 +9,7 @@ import { fetchStaff } from '@/lib/supabase/services';
 import type { Tables } from '@/lib/supabase/database.types';
 import { ShieldCheck, Compass, Heart, Users, User, Crown, Phone, Sparkles, MapPin, Globe, Camera, Share2, ExternalLink } from 'lucide-react';
 
-/* ==========================================================================
-   DEVELOPER_NOTE: CONTACT DETAILS CONFIGURATION
-   แก้ไขข้อมูลช่องทางติดต่อโรงเรียน คณะสี และสภานักเรียนได้ที่นี่เลยครับ
-   ========================================================================== */
-const CONTACT_INFO = {
-  schoolName: 'โรงเรียนพระนารายณ์',
-  address: '83 หมู่ 8 ตำบล ท่าศาลา อำเภอ เมือง จังหวัด ลพบุรี 15000',
-  addressUrl: 'https://maps.app.goo.gl/mDjT6mKnWYuoM3bQA?g_st=ic',
-  facultyIg: '@dusitsawan',
-  facultyIgUrl: 'https://www.instagram.com/dusitsawan?igsh=MXM1ajhkaXY0dDg4eQ==',
-  studentCouncilIg: '@pnr.sco',
-  studentCouncilIgUrl: 'https://www.instagram.com/pnr.sco?igsh=MXY0ZGRiMnc5c2p2aw==',
-  facebookPage: 'โรงเรียนพระนารายณ์',
-  facebookUrl: 'https://www.facebook.com/InnovationPNR?',
-  telephone: '036-4131111',
-};
+import { CONTACT_INFO } from '@/constants';
 
 function getInitial(name: string): string {
   const cleanName = name.replace(/^(นาย|น\.ส\.|นาง|ด\.ช\.|ด\.ญ\.)\s*/g, '');
@@ -99,7 +84,7 @@ export default function AboutPage() {
 
   const staffList = dbStaff ?? [];
 
-  const [activeTab, setActiveTab] = useState<'about' | 'staff' | 'contact'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'staff' | 'contact'>('staff');
 
   // Dynamically group staff members by type
   const groupedStaff = useMemo(() => {
@@ -163,38 +148,35 @@ export default function AboutPage() {
         />
 
         {/* Tab Switcher (Pill Style - Matching News Page) */}
-        <div className="flex gap-2 mb-6 md:mb-10 overflow-x-auto scrollbar-hide pb-2 md:justify-center px-1 snap-x">
-          <button
-            onClick={() => setActiveTab('about')}
-            className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all border cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 snap-center ${
-              activeTab === 'about'
-                ? 'bg-primary border-primary text-white shadow-xs'
-                : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <ShieldCheck size={14} className={activeTab === 'about' ? 'text-white' : 'text-primary'} />
-            สัญลักษณ์ & อัตลักษณ์
-          </button>
+        <div className="flex gap-2 mb-6 md:mb-10 overflow-x-auto scrollbar-hide pb-2 justify-start snap-x">
           <button
             onClick={() => setActiveTab('staff')}
-            className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all border cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 snap-center ${
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center ${
               activeTab === 'staff'
                 ? 'bg-primary border-primary text-white shadow-xs'
                 : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'
             }`}
           >
-            <Users size={14} className={activeTab === 'staff' ? 'text-white' : 'text-primary'} />
             คณะผู้จัดทำ & ทีมงาน
           </button>
           <button
+            onClick={() => setActiveTab('about')}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center ${
+              activeTab === 'about'
+                ? 'bg-primary border-primary text-white shadow-xs'
+                : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            สัญลักษณ์ & อัตลักษณ์
+          </button>
+          <button
             onClick={() => setActiveTab('contact')}
-            className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide transition-all border cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 snap-center ${
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center ${
               activeTab === 'contact'
                 ? 'bg-primary border-primary text-white shadow-xs'
                 : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'
             }`}
           >
-            <Phone size={14} className={activeTab === 'contact' ? 'text-white' : 'text-primary'} />
             ติดต่อเรา
           </button>
         </div>

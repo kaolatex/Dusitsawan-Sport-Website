@@ -53,7 +53,7 @@ export default function NewsPage() {
           highlightWord="ข่าวสาร"
         />
 
-        <div className="flex flex-wrap gap-2 mb-10">
+        <div className="flex gap-2 mb-10 overflow-x-auto scrollbar-hide pb-2 snap-x">
           {[
             { id: 'all', label: 'ทั้งหมด' },
             { id: 'sports', label: 'ข่าวกีฬา' },
@@ -66,7 +66,7 @@ export default function NewsPage() {
                 setFilter(btn.id as typeof filter);
                 setSelectedNewsId(null);
               }}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center ${
                 filter === btn.id
                   ? 'bg-primary border-primary text-white shadow-xs'
                   : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'

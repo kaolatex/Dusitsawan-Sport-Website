@@ -80,8 +80,8 @@ export default function Footer() {
             <VisitorCounter />
           </div>
           <div className="flex items-center gap-5 text-[11px] text-text-secondary">
-            <span className="hover:text-primary cursor-pointer transition-colors">ข้อตกลงการใช้งาน</span>
-            <span className="hover:text-primary cursor-pointer transition-colors">นโยบายความเป็นส่วนตัว</span>
+            <Link href="/terms" className="hover:text-primary transition-colors">ข้อตกลงการใช้งาน</Link>
+            <Link href="/privacy" className="hover:text-primary transition-colors">นโยบายความเป็นส่วนตัว</Link>
             <span className="text-primary font-semibold">Contemporary Thai Edition</span>
           </div>
         </div>
