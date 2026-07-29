@@ -24,12 +24,28 @@ export default function HomePage() {
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.15 } },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.05,
+      },
+    },
   };
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const } },
+    hidden: { opacity: 0, y: 28, scale: 0.97 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: 'spring',
+        stiffness: 280,
+        damping: 22,
+        mass: 0.75,
+      },
+    },
   };
 
   const isLoading = medalsLoading || matchesLoading || newsLoading || sportsLoading || galleryLoading || athletesLoading || staffLoading || cheerLoading || settingsLoading;
@@ -58,26 +74,54 @@ export default function HomePage() {
         <CountdownSplash />
       )}
 
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -z-10 translate-x-1/3 -translate-y-1/3" />
-      <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-accent-gold/3 rounded-full blur-3xl -z-10 -translate-x-1/2" />
+      {/* Floating Animated Ambient Glows */}
+      <motion.div
+        animate={{
+          y: [0, -25, 0],
+          x: [0, 15, 0],
+          scale: [1, 1.1, 1],
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl -z-10 pointer-events-none translate-x-1/3 -translate-y-1/3"
+      />
+      <motion.div
+        animate={{
+          y: [0, 25, 0],
+          x: [0, -15, 0],
+          scale: [1, 1.08, 1],
+        }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 1,
+        }}
+        className="absolute top-1/2 left-0 w-[450px] h-[450px] bg-pink-500/10 rounded-full blur-3xl -z-10 pointer-events-none -translate-x-1/2"
+      />
 
       {/* Hero Section */}
       <section className="relative pt-12 pb-12 md:pt-20 md:pb-16">
         <Container className="text-center space-y-6">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-xs font-semibold text-primary tracking-wide mb-4"
+            initial={{ opacity: 0, scale: 0.9, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/5 border border-primary/15 text-xs font-semibold text-primary tracking-wide mb-4 shadow-2xs backdrop-blur-xs cursor-pointer select-none"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             คณะ 2 สีชมพู • ดุสิตสวรรค์ธัญมหาปราสาท
           </motion.div>
 
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.6 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-text-primary leading-[1.1] max-w-4xl mx-auto"
           >
             ความสง่างามแห่งวิมาน <br />
@@ -87,7 +131,7 @@ export default function HomePage() {
           <motion.p
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
+            transition={{ delay: 0.15, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="text-sm sm:text-base md:text-lg text-text-secondary max-w-2xl mx-auto leading-relaxed"
           >
             นวัตกรรมระบบจัดการข้อมูล ผลการแข่งขัน สรุปเหรียญรางวัล และแกลเลอรีภาพกีฬาสี
@@ -95,44 +139,52 @@ export default function HomePage() {
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
+            transition={{ delay: 0.25, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-wrap items-center justify-center gap-3.5 pt-4"
           >
             {/* Primary Action */}
-            <Link
-              href="/schedule"
-              className="group flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover text-white text-xs font-bold tracking-wide px-5.5 py-3 rounded-full shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/35 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
-            >
-              <Calendar size={14} className="group-hover:scale-110 transition-transform" />
-              ตารางแข่งขันล่าสุด
-            </Link>
+            <motion.div whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+              <Link
+                href="/schedule"
+                className="group flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover text-white text-xs font-bold tracking-wide px-5.5 py-3 rounded-full shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/35 transition-all cursor-pointer"
+              >
+                <Calendar size={14} className="group-hover:scale-110 transition-transform" />
+                ตารางแข่งขันล่าสุด
+              </Link>
+            </motion.div>
             
             {/* Secondary Options (Uniform Outlined Style) */}
-            <Link
-              href="/sports"
-              className="group flex items-center justify-center gap-2 bg-surface-card border border-border/80 hover:border-primary/40 text-text-primary hover:text-primary text-xs font-bold tracking-wide px-5 py-3 rounded-full shadow-2xs hover:shadow-sm hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
-            >
-              <Users size={14} className="text-primary group-hover:scale-110 transition-transform" />
-              รายชื่อนักกีฬา
-            </Link>
+            <motion.div whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+              <Link
+                href="/sports"
+                className="group flex items-center justify-center gap-2 bg-surface-card border border-border/80 hover:border-primary/40 text-text-primary hover:text-primary text-xs font-bold tracking-wide px-5 py-3 rounded-full shadow-2xs hover:shadow-sm transition-all cursor-pointer"
+              >
+                <Users size={14} className="text-primary group-hover:scale-110 transition-transform" />
+                รายชื่อนักกีฬา
+              </Link>
+            </motion.div>
 
-            <Link
-              href="/cheer"
-              className="group flex items-center justify-center gap-2 bg-surface-card border border-border/80 hover:border-primary/40 text-text-primary hover:text-primary text-xs font-bold tracking-wide px-5 py-3 rounded-full shadow-2xs hover:shadow-sm hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
-            >
-              <MessageSquare size={14} className="text-primary group-hover:scale-110 transition-transform" />
-              ให้กำลังใจนักกีฬา
-            </Link>
+            <motion.div whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+              <Link
+                href="/cheer"
+                className="group flex items-center justify-center gap-2 bg-surface-card border border-border/80 hover:border-primary/40 text-text-primary hover:text-primary text-xs font-bold tracking-wide px-5 py-3 rounded-full shadow-2xs hover:shadow-sm transition-all cursor-pointer"
+              >
+                <MessageSquare size={14} className="text-primary group-hover:scale-110 transition-transform" />
+                ให้กำลังใจนักกีฬา
+              </Link>
+            </motion.div>
 
-            <Link
-              href="/about"
-              className="group flex items-center justify-center gap-2 bg-surface-card border border-border/80 hover:border-primary/40 text-text-primary hover:text-primary text-xs font-bold tracking-wide px-5 py-3 rounded-full shadow-2xs hover:shadow-sm hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
-            >
-              ทำความรู้จักเรา
-              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform text-text-secondary group-hover:text-primary" />
-            </Link>
+            <motion.div whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+              <Link
+                href="/about"
+                className="group flex items-center justify-center gap-2 bg-surface-card border border-border/80 hover:border-primary/40 text-text-primary hover:text-primary text-xs font-bold tracking-wide px-5 py-3 rounded-full shadow-2xs hover:shadow-sm transition-all cursor-pointer"
+              >
+                ทำความรู้จักเรา
+                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform text-text-secondary group-hover:text-primary" />
+              </Link>
+            </motion.div>
           </motion.div>
         </Container>
       </section>
