@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, Reorder } from 'framer-motion';
 import Container from '@/components/ui/container';
 import LoadingState from '@/components/ui/loading-state';
 import AdminLoginModal from '@/components/admin/admin-login-modal';
@@ -103,47 +103,7 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-function OrderInput({
-  value,
-  onChange,
-  disabled
-}: {
-  value: number;
-  onChange: (val: number) => void;
-  disabled?: boolean;
-}) {
-  const [localValue, setLocalValue] = useState(value);
-  
-  useEffect(() => {
-    setLocalValue(value);
-  }, [value]);
 
-  const handleBlur = () => {
-    if (localValue !== value) {
-      onChange(localValue);
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-1.5 ml-2 mr-3">
-      <span className="text-[10px] text-text-secondary font-medium">ลำดับ:</span>
-      <input
-        type="number"
-        min={0}
-        disabled={disabled}
-        className="w-14 px-2 py-1 text-xs font-bold text-center bg-surface border border-border/40 rounded-lg focus:border-primary focus:ring-1 focus:ring-primary/20 focus:outline-none transition-all disabled:opacity-50"
-        value={localValue}
-        onChange={e => setLocalValue(parseInt(e.target.value) || 0)}
-        onBlur={handleBlur}
-        onKeyDown={e => {
-          if (e.key === 'Enter') {
-            e.currentTarget.blur();
-          }
-        }}
-      />
-    </div>
-  );
-}
 
 function ImageUploadField({
   label,
@@ -680,12 +640,6 @@ export default function AdminPage() {
                           <div key={s.id} className="flex items-center justify-between p-3 bg-surface rounded-2xl border border-border/20 text-xs shadow-2xs">
                             <span className="font-bold text-text-primary truncate pr-2">{s.name}</span>
                             <div className="flex items-center">
-                              {s.isPinned && (
-                                <OrderInput
-                                  value={s.pinnedOrder || 0}
-                                  onChange={val => handleAction(async () => { await updateSport(s.id, { pinned_order: val }); refetchSports(); })}
-                                />
-                              )}
                               <button
                                 type="button"
                                 onClick={() => handleAction(async () => { await updateSport(s.id, { is_pinned: !s.isPinned }); refetchSports(); })}
@@ -715,12 +669,6 @@ export default function AdminPage() {
                               <span className="text-text-secondary ml-2 text-[10px]">({m.stage})</span>
                             </div>
                             <div className="flex items-center">
-                              {m.isPinned && (
-                                <OrderInput
-                                  value={m.pinnedOrder || 0}
-                                  onChange={val => handleAction(async () => { await updateMatch(m.id, { pinned_order: val }); refetchMatches(); })}
-                                />
-                              )}
                               <button
                                 type="button"
                                 onClick={() => handleAction(async () => { await updateMatch(m.id, { is_pinned: !m.isPinned }); refetchMatches(); })}
@@ -747,12 +695,6 @@ export default function AdminPage() {
                           <div key={n.id} className="flex items-center justify-between p-3 bg-surface rounded-2xl border border-border/20 text-xs shadow-2xs">
                             <span className="font-bold text-text-primary truncate pr-2">{n.title}</span>
                             <div className="flex items-center">
-                              {n.isPinned && (
-                                <OrderInput
-                                  value={n.pinnedOrder || 0}
-                                  onChange={val => handleAction(async () => { await updateNews(n.id, { pinned_order: val }); refetchNews(); })}
-                                />
-                              )}
                               <button
                                 type="button"
                                 onClick={() => handleAction(async () => { await updateNews(n.id, { is_pinned: !n.isPinned }); refetchNews(); })}
@@ -779,12 +721,6 @@ export default function AdminPage() {
                           <div key={g.id} className="flex items-center justify-between p-3 bg-surface rounded-2xl border border-border/20 text-xs shadow-2xs">
                             <span className="font-bold text-text-primary truncate pr-2">{g.title}</span>
                             <div className="flex items-center">
-                              {g.isPinned && (
-                                <OrderInput
-                                  value={g.pinnedOrder || 0}
-                                  onChange={val => handleAction(async () => { await updateGallery(g.id, { pinned_order: val }); refetchGallery(); })}
-                                />
-                              )}
                               <button
                                 type="button"
                                 onClick={() => handleAction(async () => { await updateGallery(g.id, { is_pinned: !g.isPinned }); refetchGallery(); })}
@@ -814,12 +750,6 @@ export default function AdminPage() {
                               <span className="text-text-secondary ml-2 text-[10px]">{a.team}</span>
                             </div>
                             <div className="flex items-center">
-                              {a.is_pinned && (
-                                <OrderInput
-                                  value={a.pinned_order || 0}
-                                  onChange={val => handleAction(async () => { await updateAthlete(a.id, { pinned_order: val }); refetchAthletes(); })}
-                                />
-                              )}
                               <button
                                 type="button"
                                 onClick={() => handleAction(async () => { await updateAthlete(a.id, { is_pinned: !a.is_pinned }); refetchAthletes(); })}
@@ -849,12 +779,6 @@ export default function AdminPage() {
                               <span className="text-text-secondary ml-2 text-[10px]">{s.position}</span>
                             </div>
                             <div className="flex items-center">
-                              {s.is_pinned && (
-                                <OrderInput
-                                  value={s.pinned_order || 0}
-                                  onChange={val => handleAction(async () => { await updateStaff(s.id, { pinned_order: val }); refetchStaff(); })}
-                                />
-                              )}
                               <button
                                 type="button"
                                 onClick={() => handleAction(async () => { await updateStaff(s.id, { is_pinned: !s.is_pinned }); refetchStaff(); })}
@@ -884,12 +808,6 @@ export default function AdminPage() {
                               <span className="text-text-secondary ml-2 text-[10px]">- {c.author_name}</span>
                             </div>
                             <div className="flex items-center">
-                              {c.is_pinned && (
-                                <OrderInput
-                                  value={c.pinned_order || 0}
-                                  onChange={val => handleAction(async () => { await updateCheerWall(c.id, { pinned_order: val }); refetchCheer(); })}
-                                />
-                              )}
                               <button
                                 type="button"
                                 onClick={() => handleAction(async () => { await updateCheerWall(c.id, { is_pinned: !c.is_pinned }); refetchCheer(); })}
@@ -1388,7 +1306,6 @@ export default function AdminPage() {
                       <FormField label="ฝ่าย / สังกัด"><input className={inputClass} value={staffForm.department} onChange={e => setStaffForm(f => ({ ...f, department: e.target.value }))} /></FormField>
                       <FormField label="หมวดหมู่ / ประเภท (เช่น Head, Staff)"><input className={inputClass} value={staffForm.type} onChange={e => setStaffForm(f => ({ ...f, type: e.target.value }))} /></FormField>
                       <FormField label="ช่องทางติดต่อ"><input className={inputClass} value={staffForm.contact_info} onChange={e => setStaffForm(f => ({ ...f, contact_info: e.target.value }))} /></FormField>
-                      <FormField label="ลำดับการแสดงผล"><input type="number" min="0" className={inputClass} value={staffForm.display_order} onChange={e => setStaffForm(f => ({ ...f, display_order: parseInt(e.target.value) || 0 }))} /></FormField>
                       <ImageUploadField label="รูปโปรไฟล์" value={staffForm.image_url} onChange={url => setStaffForm(f => ({ ...f, image_url: url }))} bucket="staff-images" folder="staff" />
                     </div>
                     <SubmitButton saving={saving} label={staffForm.id ? 'อัปเดตข้อมูลเจ้าหน้าที่' : 'เพิ่มเจ้าหน้าที่'} />
@@ -1574,28 +1491,108 @@ function SubmitButton({ saving, label }: { saving: boolean; label: string }) {
   );
 }
 
-function ItemList({ items }: { items: { id: string; label: string; onEdit: () => void; onDelete: () => void }[] }) {
+function ItemList({
+  items,
+  onReorder,
+}: {
+  items: { id: string; label: string; onEdit: () => void; onDelete: () => void }[];
+  onReorder?: (newItems: { id: string; label: string; onEdit: () => void; onDelete: () => void }[]) => void;
+}) {
+  const [list, setList] = useState(items);
+
+  useEffect(() => {
+    setList(items);
+  }, [items]);
+
+  const handleReorder = (newList: typeof items) => {
+    setList(newList);
+    if (onReorder) {
+      onReorder(newList);
+    }
+  };
+
+  const moveItem = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= list.length) return;
+    const newList = [...list];
+    const temp = newList[index];
+    newList[index] = newList[targetIndex];
+    newList[targetIndex] = temp;
+    handleReorder(newList);
+  };
+
   return (
-    <div className="bg-surface-card border border-border/20 p-6 rounded-3xl shadow-sm">
-      <h3 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2">
-        <Trophy size={14} className="text-primary" />
-        รายการ ({items.length})
-      </h3>
-      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-        {items.length === 0 ? (
-          <p className="text-xs text-text-secondary text-center py-4">ยังไม่มีข้อมูล</p>
-        ) : (
-          items.map(item => (
-            <div key={item.id} className="flex items-center justify-between p-3 bg-surface rounded-2xl border border-border/20 text-xs gap-2 shadow-2xs">
-              <span className="truncate">{item.label}</span>
-              <div className="flex gap-2 shrink-0">
-                <button type="button" onClick={item.onEdit} className="text-primary font-semibold cursor-pointer">แก้ไข</button>
-                <button type="button" onClick={item.onDelete} className="text-red-500 hover:text-red-700 cursor-pointer"><Trash2 size={14} /></button>
-              </div>
-            </div>
-          ))
-        )}
+    <div className="bg-surface-card border border-border/20 p-5 sm:p-6 rounded-3xl shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-4">
+        <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+          <Trophy size={14} className="text-primary" />
+          รายการทั้งหมด ({list.length})
+        </h3>
+        <span className="text-[10px] text-text-secondary font-normal">
+          ✨ ลากเลื่อนตำแหน่งเพื่อจัดเรียง หรือใช้ปุ่ม ▲ ▼
+        </span>
       </div>
+
+      {list.length === 0 ? (
+        <p className="text-xs text-text-secondary text-center py-6">ยังไม่มีข้อมูล</p>
+      ) : (
+        <Reorder.Group axis="y" values={list} onReorder={handleReorder} className="space-y-2 max-h-96 overflow-y-auto pr-1">
+          {list.map((item, index) => (
+            <Reorder.Item
+              key={item.id}
+              value={item}
+              className="flex items-center justify-between p-3 bg-surface hover:bg-surface/80 rounded-2xl border border-border/30 text-xs gap-3 shadow-2xs select-none cursor-grab active:cursor-grabbing transition-colors group"
+            >
+              <div className="flex items-center gap-2.5 truncate min-w-0">
+                <span className="text-text-secondary/60 group-hover:text-primary transition-colors text-xs font-mono shrink-0 cursor-grab">
+                  ⋮⋮
+                </span>
+                <span className="font-medium text-text-primary truncate">{item.label}</span>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Quick Up/Down Reorder Buttons */}
+                <div className="flex items-center gap-0.5 bg-surface-card border border-border/40 rounded-lg p-0.5 shadow-2xs">
+                  <button
+                    type="button"
+                    disabled={index === 0}
+                    onClick={(e) => { e.stopPropagation(); moveItem(index, 'up'); }}
+                    className="p-1 text-text-secondary hover:bg-primary/10 hover:text-primary disabled:opacity-20 rounded transition-colors text-[10px] leading-none cursor-pointer"
+                    title="เลื่อนขึ้น"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    disabled={index === list.length - 1}
+                    onClick={(e) => { e.stopPropagation(); moveItem(index, 'down'); }}
+                    className="p-1 text-text-secondary hover:bg-primary/10 hover:text-primary disabled:opacity-20 rounded transition-colors text-[10px] leading-none cursor-pointer"
+                    title="เลื่อนลง"
+                  >
+                    ▼
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={item.onEdit}
+                  className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white font-bold text-[11px] transition-all cursor-pointer"
+                >
+                  แก้ไข
+                </button>
+                <button
+                  type="button"
+                  onClick={item.onDelete}
+                  className="p-1.5 text-text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                  title="ลบรายการ"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            </Reorder.Item>
+          ))}
+        </Reorder.Group>
+      )}
     </div>
   );
 }
