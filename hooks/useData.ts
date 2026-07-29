@@ -12,47 +12,47 @@ import {
   fetchSiteSettings,
 } from '@/lib/supabase/services';
 
-export function useSports() {
+export function useSports(enableRealtime: boolean = false) {
   const fetcher = useCallback(() => fetchSports(), []);
-  return useSupabaseData('sports', fetcher);
+  return useSupabaseData('sports', fetcher, enableRealtime);
 }
 
-export function useMatches() {
+export function useMatches(enableRealtime: boolean = false) {
   const fetcher = useCallback(() => fetchMatches(), []);
-  return useSupabaseData('matches', fetcher);
+  return useSupabaseData('matches', fetcher, enableRealtime);
 }
 
-export function useNews() {
+export function useNews(enableRealtime: boolean = false) {
   const fetcher = useCallback(() => fetchNews(), []);
-  return useSupabaseData('news', fetcher);
+  return useSupabaseData('news', fetcher, enableRealtime);
 }
 
-export function useGallery() {
+export function useGallery(enableRealtime: boolean = false) {
   const fetcher = useCallback(() => fetchGallery(), []);
-  return useSupabaseData('gallery', fetcher);
+  return useSupabaseData('gallery', fetcher, enableRealtime);
 }
 
-export function useMedals() {
+export function useMedals(enableRealtime: boolean = false) {
   const fetcher = useCallback(() => fetchMedals(), []);
-  return useSupabaseData('medals', fetcher);
+  return useSupabaseData('medals', fetcher, enableRealtime);
 }
 
-export function useAthletes() {
+export function useAthletes(enableRealtime: boolean = false) {
   const fetcher = useCallback(() => fetchAthletes(), []);
-  return useSupabaseData('athletes', fetcher);
+  return useSupabaseData('athletes', fetcher, enableRealtime);
 }
 
-export function useStaff() {
+export function useStaff(enableRealtime: boolean = false) {
   const fetcher = useCallback(() => fetchStaff(), []);
-  return useSupabaseData('staff', fetcher);
+  return useSupabaseData('staff', fetcher, enableRealtime);
 }
 
-export function useCheerMessages() {
+export function useCheerMessages(enableRealtime: boolean = false) {
   const fetcher = useCallback(() => fetchCheerMessages(), []);
-  return useSupabaseData('cheer_wall', fetcher);
+  return useSupabaseData('cheer_wall', fetcher, enableRealtime);
 }
 
-export function useSiteSettings() {
+export function useSiteSettings(enableRealtime: boolean = false) {
   const fetcher = useCallback(() => fetchSiteSettings(), []);
-  return useSupabaseData('site_settings', fetcher);
+  return useSupabaseData('site_settings', fetcher, enableRealtime);
 }

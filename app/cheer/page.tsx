@@ -72,7 +72,7 @@ function formatThaiDate(isoString: string): string {
 
 export default function CheerPage() {
   const cheerFetcher = useCallback(() => fetchCheerMessages(), []);
-  const { data: dbCheers, refetch: refetchCheer } = useSupabaseData('cheer_wall', cheerFetcher);
+  const { data: dbCheers, refetch: refetchCheer } = useSupabaseData('cheer_wall', cheerFetcher, true);
 
   const cheerList = useMemo(() => {
     const list = (dbCheers && dbCheers.length > 0) ? dbCheers : MOCK_CHEER_MESSAGES;

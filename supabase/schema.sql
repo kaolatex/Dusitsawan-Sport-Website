@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS site_settings (
   show_countdown_on_home BOOLEAN DEFAULT FALSE,
   show_medals_on_home BOOLEAN DEFAULT FALSE,
   show_cheer_on_home BOOLEAN DEFAULT FALSE,
+  page_views INT DEFAULT 0,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -189,3 +190,17 @@ ALTER PUBLICATION supabase_realtime ADD TABLE medals;
 ALTER PUBLICATION supabase_realtime ADD TABLE staff;
 ALTER PUBLICATION supabase_realtime ADD TABLE cheer_wall;
 ALTER PUBLICATION supabase_realtime ADD TABLE site_settings;
+
+-- 11. RPC Functions
+-- Function to atomically increment page views
+CREATE OR REPLACE FUNCTION increment_page_view()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE site_settings
+  SET page_views = COALESCE(page_views, 0) + 1
+  WHERE id = 'main_settings';
+END;
+$$;

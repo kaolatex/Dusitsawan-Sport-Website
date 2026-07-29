@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Container from './container';
+import VisitorCounter from './visitor-counter';
 import { NAV_ITEMS } from '@/constants';
 
 export default function Footer() {
@@ -72,9 +73,12 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-border/40 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-[11px] text-text-secondary">
-            © {currentYear} คณะ 2 สีชมพู (ดุสิตสวรรค์). สงวนลิขสิทธิ์ทั้งหมด
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <p className="text-[11px] text-text-secondary">
+              © {currentYear} คณะ 2 สีชมพู (ดุสิตสวรรค์). สงวนลิขสิทธิ์ทั้งหมด
+            </p>
+            <VisitorCounter />
+          </div>
           <div className="flex items-center gap-5 text-[11px] text-text-secondary">
             <span className="hover:text-primary cursor-pointer transition-colors">ข้อตกลงการใช้งาน</span>
             <span className="hover:text-primary cursor-pointer transition-colors">นโยบายความเป็นส่วนตัว</span>

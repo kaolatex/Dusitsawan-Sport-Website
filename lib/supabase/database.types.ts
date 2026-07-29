@@ -376,6 +376,7 @@ export interface Database {
           show_countdown_on_home: boolean;
           show_medals_on_home: boolean;
           show_cheer_on_home: boolean;
+          page_views: number;
           updated_at: string;
         };
         Insert: {
@@ -387,6 +388,7 @@ export interface Database {
           show_countdown_on_home?: boolean;
           show_medals_on_home?: boolean;
           show_cheer_on_home?: boolean;
+          page_views?: number;
           updated_at?: string;
         };
         Update: {
@@ -398,13 +400,19 @@ export interface Database {
           show_countdown_on_home?: boolean;
           show_medals_on_home?: boolean;
           show_cheer_on_home?: boolean;
+          page_views?: number;
           updated_at?: string;
         };
         Relationships: [];
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      increment_page_view: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

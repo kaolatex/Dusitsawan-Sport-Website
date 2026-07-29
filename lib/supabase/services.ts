@@ -360,4 +360,27 @@ export async function upsertSiteSettings(payload: TablesInsert<'site_settings'>)
   if (error) handleDbError(error);
 }
 
+export async function fetchPageViews(): Promise<number> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('page_views')
+    .eq('id', 'main_settings')
+    .single();
 
+  if (error) {
+    if (error.code === 'PGRST116') return 0; // Row not found
+    handleDbError(error);
+  }
+  return data?.page_views || 0;
+}
+
+export async function incrementPageView(): Promise<void> {
+  const supabase = getSupabase();
+  const { error } = await supabase.rpc('increment_page_view');
+  
+  // Ignore PGRST202 or 42883 if the user hasn't created the RPC yet
+  if (error && error.code !== 'PGRST202' && error.code !== '42883') {
+    handleDbError(error);
+  }
+}
