@@ -43,6 +43,7 @@ function handleDbError(error: any) {
   }
 
   console.error("DB Error Details:", extracted);
+  console.error("Raw Error Object:", error);
 
   const rawMsg =
     extracted.message ||
@@ -160,7 +161,9 @@ export async function deleteSport(id: string) {
 
 export async function updateSportsOrder(updates: { id: string; sort_order: number }[]) {
   const supabase = getSupabase();
-  await Promise.all(updates.map(u => supabase.from('sports').update({ sort_order: u.sort_order }).eq('id', u.id)));
+  for (const u of updates) {
+    await supabase.from('sports').update({ sort_order: u.sort_order }).eq('id', u.id);
+  }
 }
 
 
@@ -178,7 +181,9 @@ export async function deleteSubcategory(id: string) {
 
 export async function updateSubcategoriesOrder(updates: { id: string; sort_order: number }[]) {
   const supabase = getSupabase();
-  await Promise.all(updates.map(u => supabase.from('sport_subcategories').update({ sort_order: u.sort_order }).eq('id', u.id)));
+  for (const u of updates) {
+    await supabase.from('sport_subcategories').update({ sort_order: u.sort_order }).eq('id', u.id);
+  }
 }
 
 
@@ -298,7 +303,9 @@ export async function deleteStaff(id: string) {
 
 export async function updateStaffOrder(updates: { id: string; display_order: number }[]) {
   const supabase = getSupabase();
-  await Promise.all(updates.map(u => supabase.from('staff').update({ display_order: u.display_order }).eq('id', u.id)));
+  for (const u of updates) {
+    await supabase.from('staff').update({ display_order: u.display_order }).eq('id', u.id);
+  }
 }
 
 
