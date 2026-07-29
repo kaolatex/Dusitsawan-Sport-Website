@@ -124,7 +124,7 @@ export default function NewsPage() {
 
         {activeNews && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-text-primary/45 backdrop-blur-xs"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
             onClick={() => setSelectedNewsId(null)}
           >
             <motion.div
@@ -160,7 +160,7 @@ export default function NewsPage() {
                 </div>
 
                 {activeNews.imageUrl && (
-                  <div className="w-full max-h-[55vh] bg-black/5 dark:bg-white/5 rounded-2xl overflow-hidden flex items-center justify-center p-1 border border-border/30 shadow-2xs">
+                  <div className="w-full max-h-[55vh] bg-black/10 dark:bg-black/40 rounded-2xl overflow-hidden flex items-center justify-center p-1 border border-border/20 shadow-2xs">
                     <ImageWithFallback
                       src={activeNews.imageUrl}
                       alt={activeNews.title}
