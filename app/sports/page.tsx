@@ -133,11 +133,11 @@ export default function SportsPage() {
     return searchString.includes(query);
   });
 
-  const renderIcon = (name?: string, size?: number) => {
-    if (!name) return <Trophy className="w-5 h-5" />;
+  const renderIcon = (name?: string, size: number = 20) => {
+    if (!name) return <Trophy size={size} />;
     const IconComponent = iconMap[name];
-    if (!IconComponent) return <Trophy className="w-5 h-5" />;
-    return <IconComponent className="w-5 h-5" size={size} />;
+    if (!IconComponent) return <Trophy size={size} />;
+    return <IconComponent size={size} />;
   };
 
   if (loading) {
@@ -177,47 +177,29 @@ export default function SportsPage() {
           highlightWord="กีฬา"
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-4 space-y-2">
-            {sports?.map(sport => {
-              const isActive = sport.id === activeSport;
-              return (
-                <button
-                  key={sport.id}
-                  onClick={() => setActiveSport(sport.id)}
-                  className={`w-full text-left px-5 py-4 rounded-2xl border transition-all flex items-center justify-between group cursor-pointer ${
-                    isActive
-                      ? 'bg-primary border-primary text-white shadow-xs'
-                      : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-primary'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl transition-colors ${
-                      isActive ? 'bg-white/10 text-white' : 'bg-primary/5 text-primary'
-                    }`}>
-                      {renderIcon(sport.iconName)}
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-sm">{sport.name}</span>
-                      {sport.subCategories && sport.subCategories.length > 0 && (
-                        <span className={`text-[10px] mt-0.5 ${isActive ? 'text-white/60' : 'text-text-secondary'}`}>
-                          {sport.subCategories.length} ประเภทย่อย
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <ChevronRight
-                    size={16}
-                    className={`transition-transform ${
-                      isActive ? 'translate-x-0.5 text-white' : 'text-text-secondary group-hover:translate-x-0.5'
-                    }`}
-                  />
-                </button>
-              );
-            })}
-          </div>
+        {/* Sports Selection (Capsules) */}
+        <div className="flex gap-2.5 mb-8 overflow-x-auto scrollbar-hide touch-pan-x md:flex-wrap">
+          {sports?.map(sport => {
+            const isActive = sport.id === activeSport;
+            return (
+              <button
+                key={sport.id}
+                onClick={() => setActiveSport(sport.id)}
+                className={`px-5 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all border cursor-pointer shrink-0 flex items-center gap-2.5 ${
+                  isActive
+                    ? 'bg-primary border-primary text-white shadow-md shadow-primary/20'
+                    : 'bg-surface-card border-border/40 hover:border-primary/30 text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                {renderIcon(sport.iconName, 18)}
+                <span>{sport.name}</span>
+              </button>
+            );
+          })}
+        </div>
 
-          <div className="lg:col-span-8 space-y-6">
+        {/* Content Area */}
+        <div className="space-y-6">
             <div className="bg-surface-card border border-border/40 p-6 md:p-8 rounded-3xl shadow-xs">
               <div className="flex items-center gap-4 border-b border-border/40 pb-6">
                 <div className="p-3.5 rounded-2xl bg-primary/5 text-primary">
@@ -330,7 +312,6 @@ export default function SportsPage() {
               </AnimatePresence>
             </div>
           </div>
-        </div>
       </motion.div>
     </Container>
   );

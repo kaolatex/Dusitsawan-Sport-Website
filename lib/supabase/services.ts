@@ -243,7 +243,7 @@ export async function deleteGallery(id: string) {
 
 export async function upsertAthlete(payload: TablesInsert<'athletes'>) {
   const supabase = getSupabase();
-  const { error } = await supabase.from('athletes').insert(payload);
+  const { error } = await supabase.from('athletes').upsert(payload);
   if (error) handleDbError(error);
 }
 

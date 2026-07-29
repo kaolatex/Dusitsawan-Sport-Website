@@ -2,11 +2,11 @@ import React from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-interface SectionTitleProps extends React.HTMLAttributes<HTMLDivElement> {
-  title: string;
+interface SectionTitleProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+  title: string | React.ReactNode;
   subtitle?: string;
   align?: 'left' | 'center' | 'right';
-  highlightWord?: string; // Word in title to style with primary pink color
+  highlightWord?: string; // Word in title to style with primary pink color (only works if title is a string)
 }
 
 export default function SectionTitle({
@@ -19,6 +19,10 @@ export default function SectionTitle({
 }: SectionTitleProps) {
   
   const renderTitle = () => {
+    if (typeof title !== 'string') {
+      return <h2 className="text-2xl sm:text-3.5xl font-semibold tracking-tight text-text-primary">{title}</h2>;
+    }
+
     if (!highlightWord || !title.includes(highlightWord)) {
       return <h2 className="text-2xl sm:text-3.5xl font-semibold tracking-tight text-text-primary">{title}</h2>;
     }

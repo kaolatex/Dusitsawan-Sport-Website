@@ -1237,6 +1237,14 @@ export default function AdminPage() {
                           {sportOptions.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
                       </FormField>
+                      <FormField label="กีฬาย่อย">
+                        <select className={inputClass} value={athleteForm.sub_category_id} onChange={e => setAthleteForm(f => ({ ...f, sub_category_id: e.target.value }))} disabled={!athleteForm.sport_id}>
+                          <option value="">-- ไม่ระบุ (ทั้งหมด) --</option>
+                          {(subcategories ?? []).filter(sc => sc.sport_id === athleteForm.sport_id).map(sc => (
+                            <option key={sc.id} value={sc.id}>{sc.name}</option>
+                          ))}
+                        </select>
+                      </FormField>
                       <FormField label="ชื่อ"><input required className={inputClass} value={athleteForm.name} onChange={e => setAthleteForm(f => ({ ...f, name: e.target.value }))} /></FormField>
                       <FormField label="ตำแหน่ง"><input className={inputClass} value={athleteForm.position} onChange={e => setAthleteForm(f => ({ ...f, position: e.target.value }))} /></FormField>
                       <FormField label="คณะสี"><input className={inputClass} value={athleteForm.team} onChange={e => setAthleteForm(f => ({ ...f, team: e.target.value }))} /></FormField>
@@ -1245,7 +1253,7 @@ export default function AdminPage() {
                     <SubmitButton saving={saving} label={athleteForm.id ? 'อัปเดตนักกีฬา' : 'เพิ่มนักกีฬา'} />
                   </form>
                 </Panel>
-                <ItemList items={(athletes ?? []).map(a => ({ id: a.id, label: a.name, onEdit: () => setAthleteForm({ id: a.id, sport_id: a.sport_id ?? '', sub_category_id: a.sub_category_id ?? '', name: a.name, position: a.position ?? '', team: a.team ?? '', number: a.number ?? '', avatar_url: a.avatar_url ?? '' }), onDelete: () => handleAction(async () => { await deleteAthlete(a.id); refetchAthletes(); }) }))} />
+                <ItemList items={(athletes ?? []).map(a => ({ id: a.id, label: `${a.name} ${a.sub_category_id ? `(${(subcategories ?? []).find(sc => sc.id === a.sub_category_id)?.name || 'กีฬาย่อย'})` : ''}`, onEdit: () => setAthleteForm({ id: a.id, sport_id: a.sport_id ?? '', sub_category_id: a.sub_category_id ?? '', name: a.name, position: a.position ?? '', team: a.team ?? '', number: a.number ?? '', avatar_url: a.avatar_url ?? '' }), onDelete: () => handleAction(async () => { await deleteAthlete(a.id); refetchAthletes(); }) }))} />
               </>
             )}
 

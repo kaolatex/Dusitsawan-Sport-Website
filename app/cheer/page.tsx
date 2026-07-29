@@ -83,6 +83,7 @@ export default function CheerPage() {
   const [message, setMessage] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedSticker, setSelectedSticker] = useState('heart');
+  const [customEmoji, setCustomEmoji] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
@@ -98,7 +99,7 @@ export default function CheerPage() {
       await submitCheerMessage({
         author_name: isAnonymous ? 'กองเชียร์นิรนาม' : (authorName.trim() || 'กองเชียร์สีชมพู'),
         message: message.trim(),
-        sticker_id: selectedSticker,
+        sticker_id: selectedSticker === 'custom' && customEmoji.trim() ? customEmoji.trim() : selectedSticker,
         is_anonymous: isAnonymous,
         status: 'approved',
       });
@@ -131,43 +132,47 @@ export default function CheerPage() {
         />
 
         {/* Cheer Wall Feed (Maximized) */}
-        <div className="max-w-4xl mx-auto space-y-4">
+        <div className="w-full space-y-4">
           <div className="flex items-center justify-between border-b border-border/40 pb-3">
             <h4 className="font-bold text-text-primary text-sm flex items-center gap-2">
               <MessageSquare size={16} className="text-primary" />
               ข้อความเชียร์ล่าสุด ({cheerList.length})
             </h4>
-            <span className="text-[10px] text-text-secondary font-mono">Real-time Feed</span>
+            <span className="text-[10px] text-text-secondary font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              Real-time Feed
+            </span>
           </div>
 
-          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2 pb-24 scrollbar-hide">
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 max-h-[75vh] overflow-y-auto pr-2 pb-24 scrollbar-hide">
             {cheerList.map((msg) => {
-              const sticker = STICKERS.find((s) => s.id === msg.sticker_id) || STICKERS[1];
+              const stickerObj = STICKERS.find((s) => s.id === msg.sticker_id);
+              const emojiDisplay = stickerObj ? stickerObj.emoji : (msg.sticker_id || '💖');
               return (
                 <motion.div
                   key={msg.id}
                   initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-surface-card rounded-3xl p-6 shadow-sm hover:shadow-md border border-border/20 transition-all flex gap-5 relative overflow-hidden group"
+                  className="bg-surface-card rounded-2xl p-4 shadow-2xs hover:shadow-xs border border-border/30 transition-all flex gap-3 relative group break-inside-avoid mb-4"
                 >
-                  <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-3xl shrink-0 shadow-inner">
-                    {sticker.emoji}
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 flex items-center justify-center text-base shrink-0 shadow-inner">
+                    {emojiDisplay}
                   </div>
 
-                  <div className="flex flex-col flex-grow min-w-0 space-y-1.5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <span className="font-extrabold text-text-primary text-sm truncate">
+                  <div className="flex flex-col flex-grow min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-bold text-text-primary text-xs truncate">
                         {msg.author_name}
                       </span>
-                      <span className="text-[10px] text-text-secondary flex items-center gap-1.5 font-mono shrink-0 bg-surface px-2.5 py-1 rounded-full border border-border/30">
-                        <Clock size={12} className="text-primary" />
+                      <span className="text-[9px] text-text-secondary font-mono shrink-0 opacity-60">
                         {formatThaiDate(msg.created_at)}
                       </span>
                     </div>
 
-                    <p className="text-text-secondary text-sm leading-relaxed pt-1">
-                      {msg.message}
-                    </p>
+                    <div className="bg-surface border border-border/40 rounded-xl rounded-tl-none p-3 mt-1">
+                      <p className="text-text-secondary text-[13px] leading-relaxed break-words">
+                        {msg.message}
+                      </p>
+                    </div>
                   </div>
                 </motion.div>
               );
@@ -230,7 +235,7 @@ export default function CheerPage() {
                       เลือกสติกเกอร์ส่งกำลังใจ
                     </label>
                     <div className="grid grid-cols-4 gap-2">
-                      {STICKERS.map((stk) => (
+                      {STICKERS.slice(0, 7).map((stk) => (
                         <button
                           key={stk.id}
                           type="button"
@@ -245,6 +250,23 @@ export default function CheerPage() {
                           {stk.emoji}
                         </button>
                       ))}
+                      <input
+                        type="text"
+                        maxLength={2}
+                        value={customEmoji}
+                        onChange={(e) => {
+                          setCustomEmoji(e.target.value);
+                          setSelectedSticker('custom');
+                        }}
+                        onFocus={() => setSelectedSticker('custom')}
+                        placeholder="พิมพ์😃"
+                        className={`p-1 rounded-2xl text-sm sm:text-base flex items-center justify-center text-center transition-all cursor-text focus:outline-none w-full h-full ${
+                          selectedSticker === 'custom'
+                            ? 'bg-primary/10 border-2 border-primary shadow-xs scale-105'
+                            : 'bg-surface border border-border/30 hover:border-primary/30'
+                        }`}
+                        title="พิมพ์อีโมจิของคุณ"
+                      />
                     </div>
                   </div>
 
