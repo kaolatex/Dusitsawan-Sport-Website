@@ -93,8 +93,8 @@ export default function NewsPage() {
                   <ImageWithFallback
                     src={item.imageUrl}
                     alt={item.title}
-                    containerClassName="aspect-video w-full"
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                    containerClassName="aspect-video w-full bg-surface"
+                    className="object-cover object-top w-full h-full group-hover:scale-105 transition-transform duration-500"
                   />
                 )}
                 <div className="p-5 flex flex-col flex-grow gap-3">
@@ -123,10 +123,14 @@ export default function NewsPage() {
         )}
 
         {activeNews && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-text-primary/45 backdrop-blur-xs">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-text-primary/45 backdrop-blur-xs"
+            onClick={() => setSelectedNewsId(null)}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
+              onClick={(e) => e.stopPropagation()}
               className="w-full max-w-2xl bg-surface-card border border-border rounded-3xl overflow-hidden max-h-[85vh] flex flex-col shadow-xl"
             >
               <div className="overflow-y-auto p-6 md:p-8 space-y-6">
@@ -153,12 +157,14 @@ export default function NewsPage() {
                 </div>
 
                 {activeNews.imageUrl && (
-                  <ImageWithFallback
-                    src={activeNews.imageUrl}
-                    alt={activeNews.title}
-                    containerClassName="aspect-video w-full rounded-2xl"
-                    className="object-cover w-full h-full"
-                  />
+                  <div className="w-full max-h-[60vh] bg-black/5 dark:bg-white/5 rounded-2xl overflow-hidden flex items-center justify-center p-1 border border-border/30 shadow-2xs">
+                    <ImageWithFallback
+                      src={activeNews.imageUrl}
+                      alt={activeNews.title}
+                      containerClassName="w-full max-h-[58vh] flex items-center justify-center bg-transparent"
+                      className="max-h-[58vh] w-auto max-w-full object-contain rounded-xl"
+                    />
+                  </div>
                 )}
 
                 <div className="text-xs md:text-sm text-text-secondary leading-relaxed space-y-4">

@@ -342,7 +342,7 @@ export default function HomePage() {
                       <div className="bg-surface-card rounded-3xl overflow-hidden border border-border/40 hover:border-primary/30 transition-all shadow-xs flex flex-col sm:flex-row items-stretch">
                         <div className="w-full sm:w-48 h-48 sm:h-auto shrink-0 relative overflow-hidden">
                           {(item.data as any).imageUrl ? (
-                            <ImageWithFallback src={(item.data as any).imageUrl} alt={(item.data as any).title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <ImageWithFallback src={(item.data as any).imageUrl} alt={(item.data as any).title} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" />
                           ) : (
                             <div className="w-full h-full bg-surface flex items-center justify-center text-primary/20"><Newspaper size={32} /></div>
                           )}

@@ -240,7 +240,7 @@ function ImageUploadField({
           <img
             src={value}
             alt="ตัวอย่างรูปภาพ"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain p-0.5"
             onError={e => {
               (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23f5f5f7" width="100" height="100"/><text x="50" y="55" text-anchor="middle" fill="%236e6e73" font-size="12">Error</text></svg>';
             }}
