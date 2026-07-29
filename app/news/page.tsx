@@ -7,7 +7,7 @@ import SectionTitle from '@/components/ui/section-title';
 import ImageWithFallback from '@/components/ui/image-with-fallback';
 import LoadingState, { ErrorState } from '@/components/ui/loading-state';
 import { useNews } from '@/hooks/useData';
-import { Calendar } from 'lucide-react';
+import { Calendar, X } from 'lucide-react';
 
 export default function NewsPage() {
   const [filter, setFilter] = useState<'all' | 'sports' | 'announcement' | 'activity'>('all');
@@ -131,21 +131,24 @@ export default function NewsPage() {
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-2xl bg-surface-card border border-border rounded-3xl overflow-hidden max-h-[85vh] flex flex-col shadow-xl"
+              className="w-full max-w-2xl bg-surface-card border border-border rounded-3xl overflow-hidden max-h-[85vh] flex flex-col shadow-xl relative"
             >
-              <div className="overflow-y-auto p-6 md:p-8 space-y-6">
-                <div className="flex items-center justify-between">
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${getCategoryColor(activeNews.category)}`}>
-                    {getCategoryLabel(activeNews.category)}
-                  </span>
-                  <button
-                    onClick={() => setSelectedNewsId(null)}
-                    className="px-3 py-1 rounded-full bg-surface text-text-secondary hover:text-text-primary hover:bg-border/30 text-xs transition-colors cursor-pointer"
-                  >
-                    ปิดหน้าต่าง
-                  </button>
-                </div>
+              {/* Sticky Top Header */}
+              <div className="px-6 py-4 flex items-center justify-between border-b border-border/30 bg-surface-card shrink-0 z-10">
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${getCategoryColor(activeNews.category)}`}>
+                  {getCategoryLabel(activeNews.category)}
+                </span>
+                <button
+                  onClick={() => setSelectedNewsId(null)}
+                  className="px-3 py-1 rounded-full bg-surface text-text-secondary hover:text-text-primary hover:bg-border/40 text-xs transition-colors cursor-pointer flex items-center gap-1 border border-border/30"
+                >
+                  <X size={13} />
+                  <span>ปิดหน้าต่าง</span>
+                </button>
+              </div>
 
+              {/* Scrollable Body */}
+              <div className="overflow-y-auto p-6 md:p-8 pt-4 space-y-6 flex-grow">
                 <h2 className="text-xl md:text-2xl font-bold text-text-primary leading-tight">
                   {activeNews.title}
                 </h2>
@@ -157,12 +160,12 @@ export default function NewsPage() {
                 </div>
 
                 {activeNews.imageUrl && (
-                  <div className="w-full max-h-[60vh] bg-black/5 dark:bg-white/5 rounded-2xl overflow-hidden flex items-center justify-center p-1 border border-border/30 shadow-2xs">
+                  <div className="w-full max-h-[55vh] bg-black/5 dark:bg-white/5 rounded-2xl overflow-hidden flex items-center justify-center p-1 border border-border/30 shadow-2xs">
                     <ImageWithFallback
                       src={activeNews.imageUrl}
                       alt={activeNews.title}
-                      containerClassName="w-full max-h-[58vh] flex items-center justify-center bg-transparent"
-                      className="max-h-[58vh] w-auto max-w-full object-contain rounded-xl"
+                      containerClassName="w-full max-h-[53vh] flex items-center justify-center bg-transparent"
+                      className="max-h-[53vh] w-auto max-w-full object-contain rounded-xl"
                     />
                   </div>
                 )}
