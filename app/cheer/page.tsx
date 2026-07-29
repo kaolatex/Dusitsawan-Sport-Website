@@ -154,7 +154,10 @@ export default function CheerPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="bg-surface-card rounded-2xl p-4 shadow-2xs hover:shadow-xs border border-border/30 transition-all flex gap-3 relative group break-inside-avoid mb-4"
                 >
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 flex items-center justify-center text-base shrink-0 shadow-inner">
+                  <div 
+                    className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 flex items-center justify-center text-base shrink-0 shadow-inner"
+                    style={{ fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", emoji' }}
+                  >
                     {emojiDisplay}
                   </div>
 
@@ -240,6 +243,7 @@ export default function CheerPage() {
                           key={stk.id}
                           type="button"
                           onClick={() => setSelectedSticker(stk.id)}
+                          style={{ fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", emoji' }}
                           className={`p-3 rounded-2xl text-2xl flex items-center justify-center transition-all cursor-pointer ${
                             selectedSticker === stk.id
                               ? 'bg-primary/10 border-2 border-primary shadow-xs scale-105'
@@ -254,6 +258,7 @@ export default function CheerPage() {
                         type="text"
                         maxLength={2}
                         value={customEmoji}
+                        style={{ fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", emoji' }}
                         onChange={(e) => {
                           setCustomEmoji(e.target.value);
                           setSelectedSticker('custom');

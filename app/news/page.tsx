@@ -18,9 +18,9 @@ export default function NewsPage() {
 
   const filteredNews = filter === 'all'
     ? news
-    : news.filter(item => item.category === filter);
+    : news.filter((item: any) => item.category === filter);
 
-  const activeNews = news.find(item => item.id === selectedNewsId);
+  const activeNews = news.find((item: any) => item.id === selectedNewsId);
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
@@ -82,9 +82,9 @@ export default function NewsPage() {
         ) : error ? (
           <ErrorState message={error} />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {filteredNews.map(item => (
-              <div
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredNews.map((item: any) => (
+              <motion.div
                 key={item.id}
                 onClick={() => setSelectedNewsId(item.id)}
                 className="bg-surface-card border border-border/40 rounded-2xl overflow-hidden shadow-xs hover:border-primary/20 hover:-translate-y-0.5 transition-all flex flex-col h-full cursor-pointer group"
@@ -117,7 +117,7 @@ export default function NewsPage() {
                     อ่านเพิ่มเติม...
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
@@ -171,7 +171,7 @@ export default function NewsPage() {
                 )}
 
                 <div className="text-xs md:text-sm text-text-secondary leading-relaxed space-y-4">
-                  {activeNews.content.split('\n').map((para, i) => (
+                  {activeNews.content.split('\n').map((para: string, i: number) => (
                     <p key={i}>{para}</p>
                   ))}
                 </div>

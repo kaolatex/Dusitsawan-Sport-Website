@@ -36,7 +36,7 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
-      {/* <AnnouncementBanner /> Removed per Master Specification */}
+      <AnnouncementBanner />
       <div className={`${scrolled
           ? 'glassmorphism border-b border-border/40 py-3 shadow-xs'
           : 'bg-background/80 backdrop-blur-md border-b border-border/20 py-3.5'

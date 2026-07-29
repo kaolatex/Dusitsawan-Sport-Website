@@ -79,6 +79,7 @@ import {
   EyeOff,
   Sliders,
   Timer,
+  BarChart2,
 } from 'lucide-react';
 
 type AdminTab =
@@ -92,7 +93,7 @@ type AdminTab =
   | 'medals'
   | 'staff'
   | 'cheer_wall'
-  | 'site_settings';
+  | 'analytics';
 
 const inputClass =
   'bg-surface border border-border/40 rounded-xl px-3.5 py-2.5 text-xs text-text-primary focus:outline-none focus:border-primary w-full shadow-2xs';
@@ -447,7 +448,7 @@ export default function AdminPage() {
     { id: 'medals', label: 'เหรียญรางวัล', icon: <Award size={14} /> },
     { id: 'staff', label: 'เจ้าหน้าที่/ทีมงาน', icon: <UserCheck size={14} /> },
     { id: 'cheer_wall', label: 'Cheer Wall (กำแพงเชียร์)', icon: <MessageSquare size={14} /> },
-    { id: 'site_settings', label: 'ประกาศ & นับถอยหลัง', icon: <Megaphone size={14} /> },
+    { id: 'analytics', label: 'สถิติการเข้าชม', icon: <BarChart2 size={14} /> },
   ];
 
   if (authLoading) {
@@ -527,6 +528,26 @@ export default function AdminPage() {
                     หน้าแรกถูกกำหนดเป็น Clean Slate โดยจะดึงเฉพาะไอเทมและส่วนงานที่คุณเปิดใช้งานสวิตช์ปักหมุดด้านล่างนี้มาเรนเดอร์แสดงผลเรียงลำดับลงมา
                   </p>
 
+                  <div className="bg-surface border border-border/30 rounded-2xl p-6 mb-8 space-y-4">
+                    <h3 className="font-bold text-sm text-text-primary mb-3 flex items-center gap-2 border-b border-border/30 pb-2">
+                      <Megaphone size={16} className="text-primary" /> ข้อความและการตั้งค่าระดับโลก (Global Settings)
+                    </h3>
+                    <div className="grid grid-cols-1 gap-4">
+                      <FormField label="ข้อความประกาศด่วน (Urgent Announcement Bar)">
+                        <input
+                          className={inputClass}
+                          value={settingsForm.announcement_text || ''}
+                          onChange={e => setSettingsForm(f => ({ ...f, announcement_text: e.target.value }))}
+                          onBlur={() => handleAction(async () => {
+                            await upsertSiteSettings({ ...settingsForm, announcement_text: settingsForm.announcement_text || null });
+                            refetchSettings();
+                          })}
+                          placeholder="เช่น 🎉 ยินดีต้อนรับสู่งานแข่งขันกีฬาสี ดุสิตสวรรค์!"
+                        />
+                      </FormField>
+                    </div>
+                  </div>
+
                   <h3 className="font-bold text-sm text-text-primary mb-3 flex items-center gap-2 border-b border-border/30 pb-2">
                     <Sliders size={16} className="text-primary" /> เปิด/ปิด Widget หน้าแรก
                   </h3>
@@ -556,12 +577,29 @@ export default function AdminPage() {
                     </div>
 
                     {/* Toggle Countdown Card */}
-                    <div className="p-4 bg-surface border border-border/30 rounded-2xl space-y-2">
+                    <div className="p-4 bg-surface border border-border/30 rounded-2xl space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-xs text-text-primary flex items-center gap-1.5">
                           <Timer size={14} className="text-primary" />
-                          Countdown
+                          ฟีเจอร์นับถอยหลัง
                         </span>
+                        <input
+                          type="checkbox"
+                          checked={settingsForm.is_countdown_active}
+                          onChange={e => {
+                            const val = e.target.checked;
+                            setSettingsForm(f => ({ ...f, is_countdown_active: val }));
+                            handleAction(async () => {
+                              await upsertSiteSettings({ ...settingsForm, is_countdown_active: val });
+                              refetchSettings();
+                            });
+                          }}
+                          className="w-4 h-4 rounded text-primary accent-primary cursor-pointer"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between pl-5 border-l-2 border-border/40">
+                        <span className="text-xs text-text-secondary">ปักหมุดหน้าแรก</span>
                         <input
                           type="checkbox"
                           checked={settingsForm.show_countdown_on_home}
@@ -573,10 +611,9 @@ export default function AdminPage() {
                               refetchSettings();
                             });
                           }}
-                          className="w-4 h-4 rounded text-primary accent-primary cursor-pointer"
+                          className="w-3.5 h-3.5 rounded text-primary accent-primary cursor-pointer"
                         />
                       </div>
-                      <p className="text-[10px] text-text-secondary">กล่องนับถอยหลัง / ป๊อปอัปสแปลช</p>
                     </div>
 
                     {/* Toggle Medal Standings */}
@@ -1417,82 +1454,76 @@ export default function AdminPage() {
               </Panel>
             )}
 
-            {/* SITE SETTINGS TAB */}
-            {activeTab === 'site_settings' && (
-              <Panel title="📢 จัดการประกาศด่วน & นับถอยหลัง (Urgent Banner & Countdown)">
-                <form
-                  onSubmit={e => {
-                    e.preventDefault();
-                    handleAction(async () => {
-                      await upsertSiteSettings({
-                        announcement_text: settingsForm.announcement_text || null,
-                        is_announcement_active: settingsForm.is_announcement_active,
-                        event_date: settingsForm.event_date || null,
-                        is_countdown_active: settingsForm.is_countdown_active,
-                        show_countdown_on_home: settingsForm.show_countdown_on_home,
-                        show_medals_on_home: settingsForm.show_medals_on_home,
-                        show_cheer_on_home: settingsForm.show_cheer_on_home,
-                      });
-                      refetchSettings();
-                    });
-                  }}
-                  className="space-y-4"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <FormField label="ข้อความประกาศด่วน (Urgent Announcement Bar)">
-                        <input
-                          className={inputClass}
-                          value={settingsForm.announcement_text}
-                          onChange={e => setSettingsForm(f => ({ ...f, announcement_text: e.target.value }))}
-                          placeholder="เช่น 🎉 ยินดีต้อนรับสู่งานแข่งขันกีฬาสี ดุสิตสวรรค์!"
-                        />
-                      </FormField>
+            {/* ANALYTICS TAB */}
+            {activeTab === 'analytics' && (() => {
+              const totalAthletes = athletes?.length || 0;
+              const totalSports = sports?.length || 0;
+              const totalMatches = matches?.length || 0;
+              const completedMatches = matches?.filter(m => m.status === 'completed').length || 0;
+              const totalMedals = medals?.reduce((acc, curr) => acc + curr.gold + curr.silver + curr.bronze, 0) || 0;
+              const totalCheer = cheerList?.length || 0;
+
+              return (
+              <div className="space-y-6">
+                <Panel title="สถิติความนิยม (Traffic & Engagement)">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-gradient-to-br from-primary/10 to-accent-gold/10 border border-primary/20 p-6 rounded-3xl flex flex-col items-center justify-center text-center shadow-inner col-span-1 sm:col-span-2">
+                      <BarChart2 size={32} className="text-primary mb-3" />
+                      <span className="text-text-secondary text-xs font-bold uppercase tracking-widest mb-1">ยอดผู้เข้าชมทั้งหมด (Page Views)</span>
+                      <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-gold font-mono">
+                        {(siteSettings?.page_views || 0).toLocaleString()}
+                      </span>
+                      <span className="text-text-secondary text-[10px] mt-2 bg-white/50 dark:bg-black/20 px-3 py-1 rounded-full">อัปเดตแบบเรียลไทม์ (Realtime)</span>
                     </div>
 
-                    <div className="md:col-span-2 space-y-3 mt-2">
-                      <ToggleSwitch
-                        checked={settingsForm.is_announcement_active}
-                        onChange={c => setSettingsForm(f => ({ ...f, is_announcement_active: c }))}
-                        label="เปิดใช้งานแถบประกาศด่วน (Top Announcement Bar)"
-                      />
-                      <ToggleSwitch
-                        checked={settingsForm.is_countdown_active}
-                        onChange={c => setSettingsForm(f => ({ ...f, is_countdown_active: c }))}
-                        label="เปิดใช้งานนาฬิกานับถอยหลัง (Countdown Timer)"
-                      />
-                      <ToggleSwitch
-                        checked={settingsForm.show_countdown_on_home}
-                        onChange={c => setSettingsForm(f => ({ ...f, show_countdown_on_home: c }))}
-                        label="ปักหมุด: แสดงนับถอยหลังบนหน้าแรก"
-                      />
-                      <ToggleSwitch
-                        checked={settingsForm.show_medals_on_home}
-                        onChange={c => setSettingsForm(f => ({ ...f, show_medals_on_home: c }))}
-                        label="ปักหมุด: แสดงตารางสรุปเหรียญบนหน้าแรก"
-                      />
-                      <ToggleSwitch
-                        checked={settingsForm.show_cheer_on_home}
-                        onChange={c => setSettingsForm(f => ({ ...f, show_cheer_on_home: c }))}
-                        label="ปักหมุด: แสดงกำแพงเชียร์บนหน้าแรก"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <FormField label="วันและเวลาจัดงานกีฬาสี (สำหรับนาฬิกานับถอยหลัง)">
-                        <input
-                          type="datetime-local"
-                          className={inputClass}
-                          value={settingsForm.event_date ? settingsForm.event_date.substring(0, 16) : ''}
-                          onChange={e => setSettingsForm(f => ({ ...f, event_date: e.target.value }))}
-                        />
-                      </FormField>
+                    <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 p-6 rounded-3xl flex flex-col items-center justify-center text-center shadow-inner col-span-1 sm:col-span-2">
+                      <MessageSquare size={32} className="text-blue-500 mb-3" />
+                      <span className="text-text-secondary text-xs font-bold uppercase tracking-widest mb-1">ข้อความเชียร์ทั้งหมด</span>
+                      <span className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-500 font-mono">
+                        {totalCheer.toLocaleString()}
+                      </span>
                     </div>
                   </div>
-                  <SubmitButton saving={saving} label="บันทึกการตั้งค่าเว็บไซต์" />
-                </form>
-              </Panel>
-            )}
+                </Panel>
+
+                <Panel title="ภาพรวมการแข่งขัน (Event Overview)">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="bg-surface border border-border/40 p-6 rounded-3xl flex flex-col items-center justify-center text-center hover:border-primary/40 transition-colors">
+                      <Users size={28} className="text-text-secondary mb-3" />
+                      <span className="text-text-secondary text-xs font-bold uppercase tracking-widest mb-1">นักกีฬาทั้งหมด</span>
+                      <span className="text-3xl font-black text-text-primary">{totalAthletes.toLocaleString()} <span className="text-sm font-normal text-text-secondary">คน</span></span>
+                    </div>
+
+                    <div className="bg-surface border border-border/40 p-6 rounded-3xl flex flex-col items-center justify-center text-center hover:border-primary/40 transition-colors">
+                      <Dumbbell size={28} className="text-text-secondary mb-3" />
+                      <span className="text-text-secondary text-xs font-bold uppercase tracking-widest mb-1">กีฬาที่จัดการแข่งขัน</span>
+                      <span className="text-3xl font-black text-text-primary">{totalSports.toLocaleString()} <span className="text-sm font-normal text-text-secondary">ประเภท</span></span>
+                    </div>
+
+                    <div className="bg-surface border border-border/40 p-6 rounded-3xl flex flex-col items-center justify-center text-center hover:border-primary/40 transition-colors">
+                      <Calendar size={28} className="text-text-secondary mb-3" />
+                      <span className="text-text-secondary text-xs font-bold uppercase tracking-widest mb-1">แมตช์การแข่งขัน</span>
+                      <span className="text-3xl font-black text-text-primary">
+                        {completedMatches} <span className="text-sm font-normal text-text-secondary">/ {totalMatches} แมตช์</span>
+                      </span>
+                    </div>
+                  </div>
+                </Panel>
+
+                <Panel title="สรุปผล (Results Summary)">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-br from-amber-500/10 to-yellow-500/10 border border-amber-500/20 p-6 rounded-3xl flex flex-col items-center justify-center text-center shadow-inner">
+                      <Award size={32} className="text-amber-500 mb-3" />
+                      <span className="text-text-secondary text-xs font-bold uppercase tracking-widest mb-1">เหรียญรางวัลที่แจกแล้ว</span>
+                      <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-yellow-500 font-mono">
+                        {totalMedals.toLocaleString()} <span className="text-sm font-normal text-amber-600 dark:text-amber-400">เหรียญ</span>
+                      </span>
+                    </div>
+                  </div>
+                </Panel>
+              </div>
+              );
+            })()}
           </div>
         </div>
       </motion.div>

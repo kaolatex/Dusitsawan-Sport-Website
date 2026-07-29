@@ -15,13 +15,13 @@ export default function GalleryPage() {
   const { data: gallery, loading, error } = useGallery();
 
   const images = gallery ?? [];
-  const filters = ['all', ...Array.from(new Set(images.map(img => img.sportName).filter((name): name is string => !!name)))];
+  const filters: string[] = ['all', ...Array.from(new Set<string>(images.map((img: any) => img.sportName as string).filter((name: string) => !!name)))];
 
   const filteredImages = activeFilter === 'all'
     ? images
-    : images.filter(img => img.sportName === activeFilter);
+    : images.filter((img: any) => img.sportName === activeFilter);
 
-  const currentImage = images.find(img => img.id === selectedImage);
+  const currentImage = images.find((img: any) => img.id === selectedImage);
 
   return (
     <Container className="py-16 md:py-24">
@@ -61,7 +61,7 @@ export default function GalleryPage() {
           <ErrorState message={error} />
         ) : (
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-            {filteredImages.map(img => (
+            {filteredImages.map((img: any) => (
               <div
                 key={img.id}
                 onClick={() => setSelectedImage(img.id)}

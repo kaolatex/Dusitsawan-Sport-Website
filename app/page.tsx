@@ -8,10 +8,18 @@ import ImageWithFallback from '@/components/ui/image-with-fallback';
 import LoadingState, { ErrorState } from '@/components/ui/loading-state';
 import { useMatches, useMedals, useNews, useSports, useGallery, useAthletes, useStaff, useCheerMessages, useSiteSettings } from '@/hooks/useData';
 import { Trophy, Calendar, ArrowRight, ArrowUpRight, Newspaper, Image as ImageIcon, Users, MessageSquare, Pin, UserCheck } from 'lucide-react';
-import CountdownSplash from '@/components/ui/countdown-splash';
-import AnnouncementBanner from '@/components/ui/announcement-banner';
-
+import CountdownSplash, { FloatingCountdownTrigger } from '@/components/ui/countdown-splash';
 export default function HomePage() {
+  const [isSplashOpen, setIsSplashOpen] = React.useState(false);
+  
+  React.useEffect(() => {
+    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
+    if (!hasSeenSplash) {
+      setIsSplashOpen(true);
+      sessionStorage.setItem('hasSeenSplash', 'true');
+    }
+  }, []);
+
   const { data: medals, loading: medalsLoading, error: medalsError } = useMedals();
   const { data: matches, loading: matchesLoading, error: matchesError } = useMatches();
   const { data: news, loading: newsLoading, error: newsError } = useNews();
@@ -67,11 +75,16 @@ export default function HomePage() {
 
   return (
     <div className="relative overflow-hidden min-h-screen">
-      {settings?.is_announcement_active && settings.announcement_text && (
-        <AnnouncementBanner />
-      )}
       {settings?.is_countdown_active && settings.event_date && (
-        <CountdownSplash />
+        <>
+          <CountdownSplash 
+            isOpen={isSplashOpen} 
+            onClose={() => setIsSplashOpen(false)} 
+          />
+          {!isSplashOpen && (
+            <FloatingCountdownTrigger onClick={() => setIsSplashOpen(true)} />
+          )}
+        </>
       )}
 
       {/* Floating Animated Ambient Glows */}
