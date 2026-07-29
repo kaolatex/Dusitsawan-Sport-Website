@@ -100,39 +100,38 @@ export default function HomePage() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="flex flex-wrap items-center justify-center gap-3.5 pt-4"
           >
-            {/* Primary / Solid */}
+            {/* Primary Action */}
             <Link
               href="/schedule"
-              className="bg-primary hover:bg-primary-hover text-white border border-transparent text-xs font-bold tracking-wide px-6 py-3 rounded-full shadow-xs transition-colors cursor-pointer"
+              className="group flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-hover text-white text-xs font-bold tracking-wide px-5.5 py-3 rounded-full shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/35 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
             >
+              <Calendar size={14} className="group-hover:scale-110 transition-transform" />
               ตารางแข่งขันล่าสุด
             </Link>
             
-            {/* Secondary / Semi-solid */}
+            {/* Secondary Options (Uniform Outlined Style) */}
             <Link
               href="/sports"
-              className="bg-primary/10 hover:bg-primary/20 text-primary border border-transparent text-xs font-bold tracking-wide px-6 py-3 rounded-full shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+              className="group flex items-center justify-center gap-2 bg-surface-card border border-border/80 hover:border-primary/40 text-text-primary hover:text-primary text-xs font-bold tracking-wide px-5 py-3 rounded-full shadow-2xs hover:shadow-sm hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
             >
-              <Users size={14} className="text-primary" />
+              <Users size={14} className="text-primary group-hover:scale-110 transition-transform" />
               รายชื่อนักกีฬา
             </Link>
 
-            {/* Ghost / Subtle Border */}
             <Link
               href="/cheer"
-              className="group flex items-center justify-center gap-2 bg-surface-card border border-border hover:border-primary/50 text-text-primary hover:text-primary text-xs font-bold tracking-wide px-6 py-3 rounded-full shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95"
+              className="group flex items-center justify-center gap-2 bg-surface-card border border-border/80 hover:border-primary/40 text-text-primary hover:text-primary text-xs font-bold tracking-wide px-5 py-3 rounded-full shadow-2xs hover:shadow-sm hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
             >
               <MessageSquare size={14} className="text-primary group-hover:scale-110 transition-transform" />
               ให้กำลังใจนักกีฬา
             </Link>
 
-            {/* Outline / Minimal */}
             <Link
               href="/about"
-              className="bg-transparent hover:bg-text-primary/5 border border-text-primary/20 text-text-primary text-xs font-bold tracking-wide px-6 py-3 rounded-full transition-all flex items-center gap-1 group cursor-pointer"
+              className="group flex items-center justify-center gap-2 bg-surface-card border border-border/80 hover:border-primary/40 text-text-primary hover:text-primary text-xs font-bold tracking-wide px-5 py-3 rounded-full shadow-2xs hover:shadow-sm hover:scale-[1.02] active:scale-95 transition-all cursor-pointer"
             >
               ทำความรู้จักเรา
-              <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform text-text-secondary group-hover:text-primary" />
             </Link>
           </motion.div>
         </Container>
