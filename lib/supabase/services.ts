@@ -158,6 +158,12 @@ export async function deleteSport(id: string) {
   if (error) handleDbError(error);
 }
 
+export async function updateSportsOrder(updates: { id: string; sort_order: number }[]) {
+  const supabase = getSupabase();
+  await Promise.all(updates.map(u => supabase.from('sports').update({ sort_order: u.sort_order }).eq('id', u.id)));
+}
+
+
 export async function upsertSubcategory(payload: TablesInsert<'sport_subcategories'>) {
   const supabase = getSupabase();
   const { error } = await supabase.from('sport_subcategories').upsert(payload);
@@ -169,6 +175,12 @@ export async function deleteSubcategory(id: string) {
   const { error } = await supabase.from('sport_subcategories').delete().eq('id', id);
   if (error) handleDbError(error);
 }
+
+export async function updateSubcategoriesOrder(updates: { id: string; sort_order: number }[]) {
+  const supabase = getSupabase();
+  await Promise.all(updates.map(u => supabase.from('sport_subcategories').update({ sort_order: u.sort_order }).eq('id', u.id)));
+}
+
 
 export async function upsertMatch(payload: TablesInsert<'matches'>) {
   const supabase = getSupabase();
@@ -283,6 +295,12 @@ export async function deleteStaff(id: string) {
   const { error } = await supabase.from('staff').delete().eq('id', id);
   if (error) handleDbError(error);
 }
+
+export async function updateStaffOrder(updates: { id: string; display_order: number }[]) {
+  const supabase = getSupabase();
+  await Promise.all(updates.map(u => supabase.from('staff').update({ display_order: u.display_order }).eq('id', u.id)));
+}
+
 
 export async function fetchCheerMessages() {
   const supabase = getSupabase();

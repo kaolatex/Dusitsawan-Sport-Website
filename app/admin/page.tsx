@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { motion, Reorder } from 'framer-motion';
+import { motion, Reorder, useDragControls } from 'framer-motion';
 import Container from '@/components/ui/container';
 import LoadingState from '@/components/ui/loading-state';
 import AdminLoginModal from '@/components/admin/admin-login-modal';
@@ -46,6 +46,9 @@ import {
   updateStaff,
   updateCheerWall,
   upsertSiteSettings,
+  updateSportsOrder,
+  updateSubcategoriesOrder,
+  updateStaffOrder,
 } from '@/lib/supabase/services';
 import type { Tables, TablesInsert } from '@/lib/supabase/database.types';
 import type { MatchStatus } from '@/types';
@@ -63,6 +66,7 @@ import {
   Trophy,
   Users,
   Dumbbell,
+  GripVertical,
   Upload,
   X,
   Loader2,
@@ -869,6 +873,11 @@ export default function AdminPage() {
                     onEdit: () => setSportForm({ id: s.id, name: s.name, description: s.description || '', icon_name: s.iconName || 'Trophy', rules: Array.isArray(s.rules) ? s.rules.join('\n') : '' }),
                     onDelete: () => handleAction(async () => { await deleteSport(s.id); refetchSports(); })
                   }))}
+                  onReorder={(newItems) => handleAction(async () => {
+                    const updates = newItems.map((item, index) => ({ id: item.id, sort_order: index }));
+                    await updateSportsOrder(updates);
+                    refetchSports();
+                  })}
                 />
               </>
             )}
@@ -923,6 +932,11 @@ export default function AdminPage() {
                     }),
                     onDelete: () => handleAction(async () => { await deleteSubcategory(sc.id); refetchSubcats(); })
                   }))}
+                  onReorder={(newItems) => handleAction(async () => {
+                    const updates = newItems.map((item, index) => ({ id: item.id, sort_order: index }));
+                    await updateSubcategoriesOrder(updates);
+                    refetchSubcats();
+                  })}
                 />
               </>
             )}
@@ -1311,7 +1325,19 @@ export default function AdminPage() {
                     <SubmitButton saving={saving} label={staffForm.id ? 'อัปเดตข้อมูลเจ้าหน้าที่' : 'เพิ่มเจ้าหน้าที่'} />
                   </form>
                 </Panel>
-                <ItemList items={(staffList ?? []).map(s => ({ id: s.id, label: `[${s.type || 'ทั่วไป'}] ${s.name}${s.position ? ` — ${s.position}` : ''}`, onEdit: () => setStaffForm({ id: s.id, name: s.name, position: s.position ?? '', department: s.department ?? '', contact_info: s.contact_info ?? '', type: s.type ?? '', display_order: s.display_order ?? 0, image_url: s.image_url ?? '' }), onDelete: () => handleAction(async () => { await deleteStaff(s.id); refetchStaff(); }) }))} />
+                <ItemList
+                  items={(staffList ?? []).map(s => ({
+                    id: s.id,
+                    label: `[${s.type || 'ทั่วไป'}] ${s.name}${s.position ? ` — ${s.position}` : ''}`,
+                    onEdit: () => setStaffForm({ id: s.id, name: s.name, position: s.position ?? '', department: s.department ?? '', contact_info: s.contact_info ?? '', type: s.type ?? '', display_order: s.display_order ?? 0, image_url: s.image_url ?? '' }),
+                    onDelete: () => handleAction(async () => { await deleteStaff(s.id); refetchStaff(); })
+                  }))}
+                  onReorder={(newItems) => handleAction(async () => {
+                    const updates = newItems.map((item, index) => ({ id: item.id, display_order: index }));
+                    await updateStaffOrder(updates);
+                    refetchStaff();
+                  })}
+                />
               </>
             )}
 
@@ -1491,6 +1517,83 @@ function SubmitButton({ saving, label }: { saving: boolean; label: string }) {
   );
 }
 
+function ItemRow({
+  item,
+  index,
+  isFirst,
+  isLast,
+  onMove,
+}: {
+  item: { id: string; label: string; onEdit: () => void; onDelete: () => void };
+  index: number;
+  isFirst: boolean;
+  isLast: boolean;
+  onMove: (index: number, direction: 'up' | 'down') => void;
+}) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={item}
+      dragListener={false}
+      dragControls={controls}
+      className="flex items-center justify-between p-3 bg-surface hover:bg-surface/80 rounded-2xl border border-border/30 text-xs gap-3 shadow-2xs select-none transition-colors group"
+    >
+      <div className="flex items-center gap-2.5 truncate min-w-0">
+        <span
+          onPointerDown={(e) => controls.start(e)}
+          style={{ touchAction: 'none' }}
+          className="text-text-secondary/60 hover:text-primary transition-colors shrink-0 cursor-grab active:cursor-grabbing touch-none select-none flex items-center justify-center p-2 rounded-lg hover:bg-surface-card"
+          title="แตะค้างหรือลากตรงนี้เพื่อจัดเรียง"
+        >
+          <GripVertical size={16} />
+        </span>
+        <span className="font-medium text-text-primary truncate">{item.label}</span>
+      </div>
+
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Quick Up/Down Reorder Buttons */}
+        <div className="flex items-center gap-0.5 bg-surface-card border border-border/40 rounded-lg p-0.5 shadow-2xs">
+          <button
+            type="button"
+            disabled={isFirst}
+            onClick={(e) => { e.stopPropagation(); onMove(index, 'up'); }}
+            className="p-1 text-text-secondary hover:bg-primary/10 hover:text-primary disabled:opacity-20 rounded transition-colors text-[10px] leading-none cursor-pointer"
+            title="เลื่อนขึ้น"
+          >
+            ▲
+          </button>
+          <button
+            type="button"
+            disabled={isLast}
+            onClick={(e) => { e.stopPropagation(); onMove(index, 'down'); }}
+            className="p-1 text-text-secondary hover:bg-primary/10 hover:text-primary disabled:opacity-20 rounded transition-colors text-[10px] leading-none cursor-pointer"
+            title="เลื่อนลง"
+          >
+            ▼
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={item.onEdit}
+          className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white font-bold text-[11px] transition-all cursor-pointer"
+        >
+          แก้ไข
+        </button>
+        <button
+          type="button"
+          onClick={item.onDelete}
+          className="p-1.5 text-text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+          title="ลบรายการ"
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
+    </Reorder.Item>
+  );
+}
+
 function ItemList({
   items,
   onReorder,
@@ -1529,7 +1632,7 @@ function ItemList({
           รายการทั้งหมด ({list.length})
         </h3>
         <span className="text-[10px] text-text-secondary font-normal">
-          ✨ ลากเลื่อนตำแหน่งเพื่อจัดเรียง หรือใช้ปุ่ม ▲ ▼
+          ✨ เลื่อนหน้าจอได้ปกติ • ลากเฉพาะจุดไอคอน ⋮⋮ หรือใช้ปุ่ม ▲ ▼ เพื่อจัดเรียง
         </span>
       </div>
 
@@ -1538,58 +1641,14 @@ function ItemList({
       ) : (
         <Reorder.Group axis="y" values={list} onReorder={handleReorder} className="space-y-2 max-h-96 overflow-y-auto pr-1">
           {list.map((item, index) => (
-            <Reorder.Item
+            <ItemRow
               key={item.id}
-              value={item}
-              className="flex items-center justify-between p-3 bg-surface hover:bg-surface/80 rounded-2xl border border-border/30 text-xs gap-3 shadow-2xs select-none cursor-grab active:cursor-grabbing transition-colors group"
-            >
-              <div className="flex items-center gap-2.5 truncate min-w-0">
-                <span className="text-text-secondary/60 group-hover:text-primary transition-colors text-xs font-mono shrink-0 cursor-grab">
-                  ⋮⋮
-                </span>
-                <span className="font-medium text-text-primary truncate">{item.label}</span>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                {/* Quick Up/Down Reorder Buttons */}
-                <div className="flex items-center gap-0.5 bg-surface-card border border-border/40 rounded-lg p-0.5 shadow-2xs">
-                  <button
-                    type="button"
-                    disabled={index === 0}
-                    onClick={(e) => { e.stopPropagation(); moveItem(index, 'up'); }}
-                    className="p-1 text-text-secondary hover:bg-primary/10 hover:text-primary disabled:opacity-20 rounded transition-colors text-[10px] leading-none cursor-pointer"
-                    title="เลื่อนขึ้น"
-                  >
-                    ▲
-                  </button>
-                  <button
-                    type="button"
-                    disabled={index === list.length - 1}
-                    onClick={(e) => { e.stopPropagation(); moveItem(index, 'down'); }}
-                    className="p-1 text-text-secondary hover:bg-primary/10 hover:text-primary disabled:opacity-20 rounded transition-colors text-[10px] leading-none cursor-pointer"
-                    title="เลื่อนลง"
-                  >
-                    ▼
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={item.onEdit}
-                  className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white font-bold text-[11px] transition-all cursor-pointer"
-                >
-                  แก้ไข
-                </button>
-                <button
-                  type="button"
-                  onClick={item.onDelete}
-                  className="p-1.5 text-text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-                  title="ลบรายการ"
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
-            </Reorder.Item>
+              item={item}
+              index={index}
+              isFirst={index === 0}
+              isLast={index === list.length - 1}
+              onMove={moveItem}
+            />
           ))}
         </Reorder.Group>
       )}

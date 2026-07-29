@@ -49,7 +49,7 @@ export default function AnnouncementBanner() {
         {/* Left: Announcement text */}
         {isAnnouncementActive && (
           <div className="flex items-center gap-2 truncate text-center sm:text-left">
-            <span className="p-1 rounded-full bg-white/15 shrink-0 animate-pulse">
+            <span className="p-1 rounded-full bg-white/15 border border-white/15 shrink-0 animate-pulse">
               <Megaphone size={12} className="text-white" />
             </span>
             <span className="font-semibold text-[11px] sm:text-xs truncate tracking-wide">
@@ -76,7 +76,7 @@ export default function AnnouncementBanner() {
 
           <button
             onClick={() => setDismissed(true)}
-            className="p-1 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer active:scale-95"
+            className="p-1 rounded-full border border-white/15 hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer active:scale-95"
             title="ซ่อนประกาศ"
           >
             <X size={13} />
