@@ -14,15 +14,16 @@ import { ShieldCheck, Compass, Heart, Users, User, Crown, Phone, Sparkles, MapPi
    แก้ไขข้อมูลช่องทางติดต่อโรงเรียน คณะสี และสภานักเรียนได้ที่นี่เลยครับ
    ========================================================================== */
 const CONTACT_INFO = {
-  schoolName: 'โรงเรียนสาธิตฯ / สถานศึกษา',
-  address: '123 ถนนวิภาวดีรังสิต แขวงลาดยาว เขตจตุจักร กรุงเทพมหานคร 10900',
-  facultyIg: '@dusitsawan.pink',
-  facultyIgUrl: 'https://instagram.com',
-  studentCouncilIg: '@student.council',
-  studentCouncilIgUrl: 'https://instagram.com',
-  facebookPage: 'คณะ 2 สีชมพู - ดุสิตสวรรค์',
-  facebookUrl: 'https://facebook.com',
-  telephone: '02-123-4567 / 081-999-8888',
+  schoolName: 'โรงเรียนพระนารายณ์',
+  address: '83 หมู่ 8 ตำบล ท่าศาลา อำเภอ เมือง จังหวัด ลพบุรี 15000',
+  addressUrl: 'https://maps.app.goo.gl/mDjT6mKnWYuoM3bQA?g_st=ic',
+  facultyIg: '@dusitsawan',
+  facultyIgUrl: 'https://www.instagram.com/dusitsawan?igsh=MXM1ajhkaXY0dDg4eQ==',
+  studentCouncilIg: '@pnr.sco',
+  studentCouncilIgUrl: 'https://www.instagram.com/pnr.sco?igsh=MXY0ZGRiMnc5c2p2aw==',
+  facebookPage: 'โรงเรียนพระนารายณ์',
+  facebookUrl: 'https://www.facebook.com/InnovationPNR?',
+  telephone: '036-4131111',
 };
 
 function getInitial(name: string): string {
@@ -206,20 +207,28 @@ export default function AboutPage() {
               </span>
               <h3 className="text-base font-extrabold text-text-primary flex items-center gap-2">
                 <MapPin size={16} className="text-primary" />
-                ช่องทางติดต่อศูนย์ประสานงาน
+                ช่องทางติดต่อเรา
               </h3>
             </div>
 
             {/* Contact Items Stack */}
             <div className="space-y-2.5">
               {/* School Address */}
-              <div className="flex items-start gap-3 p-3 rounded-2xl bg-surface/60 border border-border/20 shadow-2xs">
-                <MapPin size={15} className="text-primary shrink-0 mt-0.5" />
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-text-secondary uppercase">ที่อยู่โรงเรียน</span>
-                  <span className="text-xs font-semibold text-text-primary leading-snug">{CONTACT_INFO.address}</span>
+              <a
+                href={CONTACT_INFO.addressUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-start justify-between gap-3 p-3 rounded-2xl bg-surface/60 border border-border/20 hover:border-primary/30 transition-all shadow-2xs group cursor-pointer active:scale-98"
+              >
+                <div className="flex items-start gap-3">
+                  <MapPin size={15} className="text-primary shrink-0 mt-0.5" />
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-text-secondary uppercase">ที่อยู่โรงเรียน</span>
+                    <span className="text-xs font-semibold text-text-primary leading-snug">{CONTACT_INFO.address}</span>
+                  </div>
                 </div>
-              </div>
+                <ExternalLink size={12} className="text-text-secondary group-hover:text-primary transition-colors shrink-0 mt-1" />
+              </a>
 
               {/* Faculty IG */}
               <a

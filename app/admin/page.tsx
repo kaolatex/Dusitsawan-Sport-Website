@@ -80,6 +80,7 @@ import {
 type AdminTab =
   | 'pinning'
   | 'sports'
+  | 'subcategories'
   | 'matches'
   | 'news'
   | 'gallery'
@@ -301,8 +302,10 @@ export default function AdminPage() {
   const staffFetcher = useCallback(() => fetchStaff(), []);
   const cheerFetcher = useCallback(() => fetchCheerMessages(), []);
   const settingsFetcher = useCallback(() => fetchSiteSettings(), []);
+  const subcatsFetcher = useCallback(() => fetchSubcategories(), []);
 
   const { data: sports, refetch: refetchSports } = useSupabaseData('sports', sportsFetcher);
+  const { data: subcategories, refetch: refetchSubcats } = useSupabaseData('sport_subcategories', subcatsFetcher);
   const { data: matches, refetch: refetchMatches } = useSupabaseData('matches', matchesFetcher);
   const { data: news, refetch: refetchNews } = useSupabaseData('news', newsFetcher);
   const { data: gallery, refetch: refetchGallery } = useSupabaseData('gallery', galleryFetcher);
@@ -472,6 +475,7 @@ export default function AdminPage() {
   const tabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
     { id: 'pinning', label: '📌 จัดการหน้าแรก / Pinning', icon: <Pin size={14} /> },
     { id: 'sports', label: 'จัดการกีฬา', icon: <Dumbbell size={14} /> },
+    { id: 'subcategories', label: 'กีฬาย่อย', icon: <Database size={14} /> },
     { id: 'matches', label: 'แมตช์ & คะแนน', icon: <Calendar size={14} /> },
     { id: 'news', label: 'ข่าวสาร', icon: <Newspaper size={14} /> },
     { id: 'gallery', label: 'แกลเลอรี', icon: <ImageIcon size={14} /> },
@@ -946,6 +950,60 @@ export default function AdminPage() {
                     label: s.name,
                     onEdit: () => setSportForm({ id: s.id, name: s.name, description: s.description || '', icon_name: s.iconName || 'Trophy', rules: Array.isArray(s.rules) ? s.rules.join('\n') : '' }),
                     onDelete: () => handleAction(async () => { await deleteSport(s.id); refetchSports(); })
+                  }))}
+                />
+              </>
+            )}
+
+            {/* SUBCATEGORIES TAB */}
+            {activeTab === 'subcategories' && (
+              <>
+                <Panel title="+ เพิ่มกีฬาย่อย">
+                  <form
+                    onSubmit={e => {
+                      e.preventDefault();
+                      handleAction(async () => {
+                        const id = subForm.id || `sub-${Date.now()}`;
+                        await upsertSubcategory({
+                          id,
+                          sport_id: subForm.sport_id,
+                          name: subForm.name,
+                          description: subForm.description || null,
+                          rules: subForm.rules.split('\n').filter(Boolean),
+                          sort_order: 0,
+                        });
+                        setSubForm({ id: '', sport_id: '', name: '', description: '', rules: '' });
+                        refetchSubcats();
+                      });
+                    }}
+                    className="space-y-4"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField label="กีฬาหลัก">
+                        <select required className={inputClass} value={subForm.sport_id} onChange={e => setSubForm(f => ({ ...f, sport_id: e.target.value }))}>
+                          <option value="">เลือกกีฬาหลัก...</option>
+                          {(sports ?? []).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
+                      </FormField>
+                      <FormField label="ชื่อกีฬาย่อย (เช่น ชาย ม.ต้น)"><input required className={inputClass} value={subForm.name} onChange={e => setSubForm(f => ({ ...f, name: e.target.value }))} /></FormField>
+                      <FormField label="รายละเอียด"><textarea className={inputClass} rows={2} value={subForm.description} onChange={e => setSubForm(f => ({ ...f, description: e.target.value }))} /></FormField>
+                      <FormField label="กฎกติกา (บรรทัดละ 1 ข้อ)"><textarea className={inputClass} rows={2} value={subForm.rules} onChange={e => setSubForm(f => ({ ...f, rules: e.target.value }))} /></FormField>
+                    </div>
+                    <SubmitButton saving={saving} label={subForm.id ? 'อัปเดตกีฬาย่อย' : 'เพิ่มกีฬาย่อย'} />
+                  </form>
+                </Panel>
+                <ItemList
+                  items={(subcategories ?? []).map(sc => ({
+                    id: sc.id,
+                    label: `[${(sports ?? []).find(s => s.id === sc.sport_id)?.name || 'ไม่ทราบกีฬา'}] ${sc.name}`,
+                    onEdit: () => setSubForm({
+                      id: sc.id,
+                      sport_id: sc.sport_id,
+                      name: sc.name,
+                      description: sc.description || '',
+                      rules: Array.isArray(sc.rules) ? sc.rules.join('\n') : '',
+                    }),
+                    onDelete: () => handleAction(async () => { await deleteSubcategory(sc.id); refetchSubcats(); })
                   }))}
                 />
               </>
