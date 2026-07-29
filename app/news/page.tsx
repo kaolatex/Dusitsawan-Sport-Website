@@ -160,12 +160,12 @@ export default function NewsPage() {
                 </div>
 
                 {activeNews.imageUrl && (
-                  <div className="w-full max-h-[55vh] bg-black/10 dark:bg-black/40 rounded-2xl overflow-hidden flex items-center justify-center p-1 border border-border/20 shadow-2xs">
+                  <div className="flex justify-center w-full overflow-hidden my-2">
                     <ImageWithFallback
                       src={activeNews.imageUrl}
                       alt={activeNews.title}
-                      containerClassName="w-full max-h-[53vh] flex items-center justify-center bg-transparent"
-                      className="max-h-[53vh] w-auto max-w-full object-contain rounded-xl"
+                      containerClassName="max-h-[60vh] w-auto max-w-full flex justify-center bg-transparent rounded-2xl"
+                      className="max-h-[60vh] w-auto max-w-full object-contain rounded-2xl shadow-md"
                     />
                   </div>
                 )}
