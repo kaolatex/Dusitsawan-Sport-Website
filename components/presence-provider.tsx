@@ -47,6 +47,10 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
   const [isBlackout, setIsBlackout] = useState(false);
   const [hearts, setHearts] = useState<{ id: number, x: number }[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  
+  // DIAGNOSTICS
+  const [debugState, setDebugState] = useState<string>('INIT');
+  const [lastEvent, setLastEvent] = useState<string>('NONE');
 
   // Initialize Telemetry
   useEffect(() => {
@@ -115,6 +119,7 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
     });
 
     setActiveChannel(channel);
+    setDebugState('CREATED');
 
     // Init Maintenance Mode from DB
     const initMaintenance = async () => {
@@ -163,33 +168,36 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
           zIndex: 9999
         });
       })
-      .on('broadcast', { event: 'shake' }, (payload) => {
-        if (isPanicMode) return; // Disable heavy effects
-        setIsShaking(true);
-        if (payload.payload?.text) {
-          setToastMessage(payload.payload.text);
-        }
-        setTimeout(() => setIsShaking(false), 2000);
-      })
-      .on('broadcast', { event: 'toast' }, (payload) => {
-        setToastMessage(payload.payload.text);
-        setTimeout(() => setToastMessage(null), 5000);
-      })
       .on('broadcast', { event: 'hearts' }, () => {
+        setLastEvent('hearts-' + Date.now());
         if (isPanicMode) return;
         const newHearts = Array.from({ length: 20 }).map((_, i) => ({ id: Date.now() + i, x: Math.random() * 100 }));
         setHearts(prev => [...prev, ...newHearts]);
         setTimeout(() => setHearts(prev => prev.filter(h => !newHearts.find(n => n.id === h.id))), 3000);
       })
       .on('broadcast', { event: 'glitch' }, () => {
+        setLastEvent('glitch-' + Date.now());
         if (isPanicMode) return;
         setIsGlitching(true);
-        setTimeout(() => setIsGlitching(false), 2000);
+        setTimeout(() => setIsGlitching(false), 3000);
       })
       .on('broadcast', { event: 'blackout' }, () => {
+        setLastEvent('blackout-' + Date.now());
         if (isPanicMode) return;
         setIsBlackout(true);
-        setTimeout(() => setIsBlackout(false), 3000);
+        setTimeout(() => setIsBlackout(false), 5000);
+      })
+      .on('broadcast', { event: 'shake' }, (payload) => {
+        setLastEvent('shake-' + Date.now());
+        if (isPanicMode) return; // Disable heavy effects
+        setIsShaking(true);
+        const dur = payload.payload?.duration || 2000;
+        setTimeout(() => setIsShaking(false), dur);
+      })
+      .on('broadcast', { event: 'toast' }, (payload) => {
+        setLastEvent('toast-' + Date.now());
+        setToastMessage(payload.payload.message);
+        setTimeout(() => setToastMessage(null), 5000);
       })
       .on('presence', { event: 'sync' }, () => {
         const newState = channel.presenceState();
@@ -214,6 +222,7 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
         setPresenceList(pList);
       })
       .subscribe(async (status) => {
+        setDebugState(status);
         if (status === 'SUBSCRIBED') {
           updatePresence();
         }
@@ -331,6 +340,15 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
             <span className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce delay-100" />
             <span className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce delay-200" />
           </div>
+        </div>
+      )}
+
+      {/* DEV DIAGNOSTICS */}
+      {pathname !== '/dev' && (
+        <div className="fixed bottom-2 left-2 z-[999999] bg-black/80 text-white text-[10px] font-mono p-2 rounded border border-zinc-800 pointer-events-none opacity-50">
+          <div>WS: {debugState}</div>
+          <div>EVT: {lastEvent}</div>
+          <div>PATH: {pathname}</div>
         </div>
       )}
     </PresenceContext.Provider>
