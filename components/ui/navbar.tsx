@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,11 +10,17 @@ import Container from './container';
 import { ThemeToggle } from './theme-toggle';
 
 import AnnouncementBanner from './announcement-banner';
+import PasscodeModal from './passcode-modal';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
+  // Easter Egg State
+  const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
+  const [tapCount, setTapCount] = useState(0);
+  const tapTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,6 +40,32 @@ export default function Navbar() {
     setIsOpen(false);
   }, [pathname]);
 
+  const handleLogoTap = (e: React.MouseEvent) => {
+    // Only intercept if we are actively tapping, otherwise let Link work naturally
+    // Actually, we should preventDefault if we are tapping fast, but for simplicity, 
+    // let's just let the link work but also count taps.
+    // If they click 10 times, they might navigate to "/" multiple times which is fine.
+    // Wait, better to prevent default to avoid reloading the page while trying to trigger the easter egg.
+    e.preventDefault();
+    setTapCount(prev => prev + 1);
+
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+
+    tapTimerRef.current = setTimeout(() => {
+      setTapCount(0);
+    }, 4000);
+
+    if (tapCount + 1 >= 10) {
+      setIsPasscodeModalOpen(true);
+      setTapCount(0);
+      if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+      // Haptic feedback if available
+      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(50);
+      }
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
       <AnnouncementBanner />
@@ -44,7 +76,7 @@ export default function Navbar() {
         <Container>
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 group">
+            <Link href="/" onClick={handleLogoTap} className="flex items-center gap-2.5 group">
               <span className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-tr from-primary to-primary-soft flex items-center justify-center text-white font-bold text-sm shadow-xs group-hover:scale-105 transition-transform">
                 ดส
               </span>
@@ -117,6 +149,11 @@ export default function Navbar() {
           </div>
         </Container>
       </div>
+
+      <PasscodeModal 
+        isOpen={isPasscodeModalOpen} 
+        onClose={() => setIsPasscodeModalOpen(false)} 
+      />
 
       {/* Mobile Drawer */}
       <AnimatePresence>

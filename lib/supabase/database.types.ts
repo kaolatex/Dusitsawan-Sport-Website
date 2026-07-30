@@ -410,6 +410,10 @@ export interface Database {
           show_medals_on_home: boolean;
           show_cheer_on_home: boolean;
           is_photo_wall_paused: boolean;
+          is_wave_mode_active: boolean;
+          is_heart_counter_active: boolean;
+          is_lucky_draw_active: boolean;
+          is_maintenance_mode: boolean;
           page_views: number;
           updated_at: string;
         };
@@ -423,6 +427,10 @@ export interface Database {
           show_medals_on_home?: boolean;
           show_cheer_on_home?: boolean;
           is_photo_wall_paused?: boolean;
+          is_wave_mode_active?: boolean;
+          is_heart_counter_active?: boolean;
+          is_lucky_draw_active?: boolean;
+          is_maintenance_mode?: boolean;
           page_views?: number;
           updated_at?: string;
         };
@@ -436,6 +444,10 @@ export interface Database {
           show_medals_on_home?: boolean;
           show_cheer_on_home?: boolean;
           is_photo_wall_paused?: boolean;
+          is_wave_mode_active?: boolean;
+          is_heart_counter_active?: boolean;
+          is_lucky_draw_active?: boolean;
+          is_maintenance_mode?: boolean;
           page_views?: number;
           updated_at?: string;
         };

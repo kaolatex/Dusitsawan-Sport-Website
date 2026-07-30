@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/ui/navbar";
 import Footer from "@/components/ui/footer";
 import { ThemeProvider } from "@/components/theme-provider";
+import PresenceProvider from "@/components/presence-provider";
 import { Analytics } from "@vercel/analytics/react";
 
 const ibmPlexSansThai = IBM_Plex_Sans_Thai({
@@ -42,9 +43,11 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <Navbar />
-          <main className="flex-grow pt-20 md:pt-24 min-h-screen">{children}</main>
-          <Footer />
+          <PresenceProvider>
+            <Navbar />
+            <main className="flex-grow pt-20 md:pt-24 min-h-screen">{children}</main>
+            <Footer />
+          </PresenceProvider>
         </ThemeProvider>
         <Analytics />
       </body>
