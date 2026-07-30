@@ -213,17 +213,24 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
         }
         setPresenceList(pList);
       })
-      .subscribe(async (status) => {
+      .subscribe((status, err) => {
         setDebugState(status);
         if (status === 'SUBSCRIBED') {
+          setActiveChannel(channel);
           updatePresence();
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          setActiveChannel(null);
+          // Auto-reconnect if it closed unexpectedly
+          setTimeout(() => {
+            if (mounted) channel.subscribe();
+          }, 2000);
         }
       });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [pathname]);
+  }, []); // Run only once on mount
 
   // Handle path and latency changes for presence tracking
   useEffect(() => {
