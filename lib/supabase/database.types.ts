@@ -376,6 +376,7 @@ export interface Database {
           show_countdown_on_home: boolean;
           show_medals_on_home: boolean;
           show_cheer_on_home: boolean;
+          is_photo_wall_paused: boolean;
           page_views: number;
           updated_at: string;
         };
@@ -388,6 +389,7 @@ export interface Database {
           show_countdown_on_home?: boolean;
           show_medals_on_home?: boolean;
           show_cheer_on_home?: boolean;
+          is_photo_wall_paused?: boolean;
           page_views?: number;
           updated_at?: string;
         };
@@ -400,6 +402,7 @@ export interface Database {
           show_countdown_on_home?: boolean;
           show_medals_on_home?: boolean;
           show_cheer_on_home?: boolean;
+          is_photo_wall_paused?: boolean;
           page_views?: number;
           updated_at?: string;
         };
