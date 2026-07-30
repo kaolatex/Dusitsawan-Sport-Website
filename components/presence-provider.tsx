@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useEffect, useState, ReactNode } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { getSupabase } from '@/lib/supabase/client';
 import { usePathname } from 'next/navigation';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import { parseUserAgent } from '@/hooks/useDeviceDetect';
-import { ShieldAlert } from 'lucide-react';
 
 export interface PresenceData {
   key: string;
@@ -19,299 +18,280 @@ export interface PresenceData {
   last_activity: string;
 }
 
-export const PresenceContext = React.createContext<{ 
-  onlineUsers: number; 
+export const PresenceContext = React.createContext<{
+  onlineUsers: number;
   presenceList: PresenceData[];
   broadcast: (event: string, payload?: any) => void;
-}>({ 
-  onlineUsers: 0, 
+}>({
+  onlineUsers: 0,
   presenceList: [],
-  broadcast: () => {} 
+  broadcast: () => {},
 });
 
 export default function PresenceProvider({ children }: { children: React.ReactNode }) {
   const [onlineUsers, setOnlineUsers] = useState(0);
   const [presenceList, setPresenceList] = useState<PresenceData[]>([]);
-  const [activeChannel, setActiveChannel] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
-  
-  // Telemetry States
+
+  // Telemetry
   const [latency, setLatency] = useState(0);
   const [deviceInfo, setDeviceInfo] = useState({ device: 'Desktop', browser: 'Unknown' });
-  const [lastActivity, setLastActivity] = useState(() => new Date().toISOString());
 
-  // States for Crowd Control & System Overrides
+  // Crowd Control
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [isPanicMode, setIsPanicMode] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
   const [isGlitching, setIsGlitching] = useState(false);
   const [isBlackout, setIsBlackout] = useState(false);
-  const [hearts, setHearts] = useState<{ id: number, x: number }[]>([]);
+  const [hearts, setHearts] = useState<{ id: number; x: number }[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-  
-  const [showDebugPill, setShowDebugPill] = useState(false);
 
-  // Read debug pill state from localStorage and listen for changes
+  // Refs — prevent stale closures in long-lived channel callbacks
+  const isPanicModeRef = useRef(false);
+  const channelRef = useRef<any>(null);
+  const deviceInfoRef = useRef(deviceInfo);
+  const latencyRef = useRef(latency);
+  const pathnameRef = useRef(pathname);
+
+  // Debug pill
+  const [showDebugPill, setShowDebugPill] = useState(false);
+  const [debugState, setDebugState] = useState('INIT');
+  const [lastEvent, setLastEvent] = useState('NONE');
+
+  // Keep refs in sync with state
+  useEffect(() => { isPanicModeRef.current = isPanicMode; }, [isPanicMode]);
+  useEffect(() => { deviceInfoRef.current = deviceInfo; }, [deviceInfo]);
+  useEffect(() => { latencyRef.current = latency; }, [latency]);
+  useEffect(() => { pathnameRef.current = pathname; }, [pathname]);
+
+  // Debug pill — read from localStorage and listen for changes
   useEffect(() => {
     setShowDebugPill(localStorage.getItem('dev_debug_mode') === 'true');
-    const handleStorageChange = () => {
-      setShowDebugPill(localStorage.getItem('dev_debug_mode') === 'true');
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    const handler = () => setShowDebugPill(localStorage.getItem('dev_debug_mode') === 'true');
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
   }, []);
-  
-  // DIAGNOSTICS
-  const [debugState, setDebugState] = useState<string>('INIT');
-  const [lastEvent, setLastEvent] = useState<string>('NONE');
 
-  // Initialize Telemetry
+  // Telemetry: device detection + fetch latency interceptor
   useEffect(() => {
-    setDeviceInfo(parseUserAgent(window.navigator.userAgent));
+    const info = parseUserAgent(window.navigator.userAgent);
+    setDeviceInfo(info);
+    deviceInfoRef.current = info;
+    setMounted(true);
 
-    // Intercept fetch to calculate latency & API Performance
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
       const start = performance.now();
       try {
         const response = await originalFetch(...args);
-        const end = performance.now();
-        const duration = Math.round(end - start);
-        setLatency(duration);
-        setLastActivity(new Date().toISOString());
-        
-        // API Performance tracking (Local only)
-        const urlObj = typeof args[0] === 'string' ? new URL(args[0], window.location.origin) : null;
-        
+        const ms = Math.round(performance.now() - start);
+        setLatency(ms);
+        latencyRef.current = ms;
         return response;
       } catch (error) {
         throw error;
       }
     };
-
-    // Intercept Errors
-    const handleError = (msg: string, source?: string) => {
-      // Local error logging only
-      console.error(`[Client Error] ${msg} at ${source || 'Unknown'}`);
-    };
-    
-    window.addEventListener('error', (e) => handleError(e.message, e.filename));
-    window.addEventListener('unhandledrejection', (e) => handleError(e.reason?.toString() || 'Unknown', 'Promise'));
-
-    setMounted(true);
-
-    return () => {
-      window.fetch = originalFetch;
-    };
+    return () => { window.fetch = originalFetch; };
   }, []);
 
+  // Supabase Realtime — one channel, never recreated on route changes
   useEffect(() => {
-    // We only want to track presence if we are on the client side
     const supabase = getSupabase();
-    
-    // Create a random user ID for this session's presence
     const sessionId = Math.random().toString(36).substring(2, 15);
-    
+
     const channel = supabase.channel('global_presence', {
       config: {
-        presence: {
-          key: sessionId,
-        },
+        presence: { key: sessionId },
         broadcast: { ack: true, self: true },
       },
     });
 
-    setActiveChannel(channel);
+    channelRef.current = channel;
     setDebugState('CREATED');
 
-    // Init Maintenance Mode from DB
-    const initMaintenance = async () => {
-      const { data } = await supabase.from('site_settings').select('is_maintenance_mode').eq('id', 'main_settings').single();
-      if (data) setIsMaintenance(data.is_maintenance_mode);
-    };
-    initMaintenance();
-
-    const updatePresence = async () => {
-      if (channel.state === 'joined') {
-        await channel.track({ 
-          online_at: new Date().toISOString(), 
-          pathname,
-          device: deviceInfo.device,
-          browser: deviceInfo.browser,
-          latency,
-          last_activity: lastActivity
-        });
-      }
-    };
+    // Fetch initial maintenance state
+    supabase
+      .from('site_settings')
+      .select('is_maintenance_mode')
+      .eq('id', 'main_settings')
+      .single()
+      .then(({ data }) => { if (data) setIsMaintenance(data.is_maintenance_mode); });
 
     channel
       .on('broadcast', { event: 'force_reload' }, () => {
-        console.warn('SYSTEM OVERRIDE: Global reload initiated by DEV.');
         window.location.reload();
       })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'site_settings', filter: 'id=eq.main_settings' }, (payload) => {
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'site_settings',
+        filter: 'id=eq.main_settings',
+      }, (payload) => {
         if (payload.new && 'is_maintenance_mode' in payload.new) {
           setIsMaintenance(payload.new.is_maintenance_mode);
         }
       })
       .on('broadcast', { event: 'panic_mode' }, (payload) => {
-        setIsPanicMode(payload.payload.active);
-        if (payload.payload.active) {
-          document.body.classList.add('panic-mode');
-        } else {
-          document.body.classList.remove('panic-mode');
-        }
+        const active: boolean = payload.payload.active;
+        setIsPanicMode(active);
+        isPanicModeRef.current = active;
+        document.body.classList.toggle('panic-mode', active);
       })
       .on('broadcast', { event: 'confetti' }, () => {
-        if (isPanicMode) return; // Disable heavy effects
-        confetti({
-          particleCount: 150,
-          spread: 80,
-          origin: { y: 0.6 },
-          zIndex: 9999
-        });
+        if (isPanicModeRef.current) return;
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 9999 });
       })
       .on('broadcast', { event: 'hearts' }, () => {
         setLastEvent('hearts-' + Date.now());
-        if (isPanicMode) return;
-        const newHearts = Array.from({ length: 20 }).map((_, i) => ({ id: Date.now() + i, x: Math.random() * 100 }));
+        if (isPanicModeRef.current) return;
+        const newHearts = Array.from({ length: 20 }, (_, i) => ({
+          id: Date.now() + i,
+          x: Math.random() * 100,
+        }));
         setHearts(prev => [...prev, ...newHearts]);
-        setTimeout(() => setHearts(prev => prev.filter(h => !newHearts.find(n => n.id === h.id))), 3000);
+        setTimeout(() => setHearts(prev => prev.filter(h => !newHearts.find(n => n.id === h.id))), 3500);
       })
       .on('broadcast', { event: 'glitch' }, () => {
         setLastEvent('glitch-' + Date.now());
-        if (isPanicMode) return;
+        if (isPanicModeRef.current) return;
         setIsGlitching(true);
         setTimeout(() => setIsGlitching(false), 3000);
       })
       .on('broadcast', { event: 'blackout' }, () => {
         setLastEvent('blackout-' + Date.now());
-        if (isPanicMode) return;
+        if (isPanicModeRef.current) return;
         setIsBlackout(true);
         setTimeout(() => setIsBlackout(false), 5000);
       })
       .on('broadcast', { event: 'shake' }, (payload) => {
         setLastEvent('shake-' + Date.now());
-        if (isPanicMode) return; // Disable heavy effects
+        if (isPanicModeRef.current) return;
         setIsShaking(true);
-        const dur = payload.payload?.duration || 2000;
-        setTimeout(() => setIsShaking(false), dur);
+        setTimeout(() => setIsShaking(false), payload.payload?.duration || 2000);
       })
       .on('broadcast', { event: 'toast' }, (payload) => {
         setLastEvent('toast-' + Date.now());
-        setToastMessage(payload.payload.message);
+        // Support both `message` and `text` keys for backward compat
+        const msg = payload.payload?.message || payload.payload?.text || '';
+        setToastMessage(msg);
         setTimeout(() => setToastMessage(null), 5000);
       })
       .on('presence', { event: 'sync' }, () => {
-        const newState = channel.presenceState();
-        setOnlineUsers(Object.keys(newState).length);
-        
-        // Extract presence list
+        const state = channel.presenceState();
+        setOnlineUsers(Object.keys(state).length);
         const pList: PresenceData[] = [];
-        for (const key in newState) {
-          const p = newState[key][0] as any;
+        for (const key in state) {
+          const p = state[key][0] as any;
           if (p) {
-            pList.push({ 
-              key, 
-              online_at: p.online_at, 
+            pList.push({
+              key,
+              online_at: p.online_at,
               pathname: p.pathname || '/',
               device: p.device || 'Unknown',
               browser: p.browser || 'Unknown',
               latency: p.latency || 0,
-              last_activity: p.last_activity || p.online_at
+              last_activity: p.last_activity || p.online_at,
             });
           }
         }
         setPresenceList(pList);
       });
 
-    // Set active channel immediately so `.send()` queues messages if called before connected
-    setActiveChannel(channel);
-
     channel.subscribe((status, err) => {
       setDebugState(status);
       if (status === 'SUBSCRIBED') {
-        updatePresence();
-      } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-        if (err) console.error('Supabase Channel Error:', err);
+        const now = new Date().toISOString();
+        channel.track({
+          online_at: now,
+          pathname: pathnameRef.current,
+          device: deviceInfoRef.current.device,
+          browser: deviceInfoRef.current.browser,
+          latency: 0,
+          last_activity: now,
+        });
+      } else if ((status === 'CLOSED' || status === 'CHANNEL_ERROR') && err) {
+        console.error('[PresenceProvider] Channel error:', err);
       }
     });
 
     return () => {
+      channelRef.current = null;
       supabase.removeChannel(channel);
     };
-  }, []); // Run only once on mount
+  }, []); // Run only once on mount — intentional
 
-  // Handle path and latency changes for presence tracking
+  // Update presence tracking on route / latency changes
   useEffect(() => {
-    const now = new Date().toISOString();
-    setLastActivity(now);
-    if (activeChannel && activeChannel.state === 'joined') {
-      activeChannel.track({ 
-        online_at: now, 
+    const ch = channelRef.current;
+    if (ch && ch.state === 'joined') {
+      const now = new Date().toISOString();
+      ch.track({
+        online_at: now,
         pathname,
         device: deviceInfo.device,
         browser: deviceInfo.browser,
         latency,
-        last_activity: now
+        last_activity: now,
       });
     }
-  }, [pathname, latency, deviceInfo, activeChannel]);
+  }, [pathname, latency, deviceInfo]);
 
-  const broadcast = async (event: string, payload: any = {}) => {
-    if (activeChannel) {
-      try {
-        const resp = await activeChannel.send({ type: 'broadcast', event, payload });
-        console.log(`[Broadcast] Sent ${event}:`, resp);
-        
-        if (resp !== 'ok') {
-          setToastMessage(`⚠️ Send failed (${resp}). Connection might be unstable.`);
-        }
-      } catch (err) {
-        console.error(`[Broadcast] Error sending ${event}:`, err);
-        setToastMessage(`⚠️ Error: ${err}`);
-      }
-    } else {
+  const broadcast = useCallback(async (event: string, payload: any = {}) => {
+    const ch = channelRef.current;
+    if (!ch) {
       setToastMessage('⏳ System booting up... Please wait.');
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
     }
-  };
+    try {
+      const resp = await ch.send({ type: 'broadcast', event, payload });
+      if (resp !== 'ok') {
+        setToastMessage(`⚠️ Send failed (${resp})`);
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('[Broadcast] Error:', err);
+      setToastMessage('⚠️ Broadcast error');
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  }, []);
 
   return (
     <PresenceContext.Provider value={{ onlineUsers, presenceList, broadcast }}>
       {isGlitching && (
         <style dangerouslySetInnerHTML={{ __html: `
-          body {
-            animation: glitch-anim 0.2s linear infinite;
-          }
+          body { animation: glitch-anim 0.2s linear infinite; }
           @keyframes glitch-anim {
-            0% { filter: invert(1) hue-rotate(90deg) contrast(150%); transform: translate(4px, -4px); }
-            50% { filter: invert(0) hue-rotate(0deg) contrast(100%); transform: translate(-4px, 4px); }
-            100% { filter: invert(1) hue-rotate(180deg) contrast(150%); transform: translate(4px, -4px); }
+            0%   { filter: invert(1) hue-rotate(90deg)  contrast(150%); transform: translate(4px, -4px);  }
+            50%  { filter: invert(0) hue-rotate(0deg)   contrast(100%); transform: translate(-4px, 4px);  }
+            100% { filter: invert(1) hue-rotate(180deg) contrast(150%); transform: translate(4px, -4px);  }
           }
         `}} />
       )}
+
       <div className={`transition-transform duration-75 ${isShaking ? 'animate-[shake_0.2s_ease-in-out_infinite]' : ''}`}>
         {children}
       </div>
 
       {mounted && createPortal(
         <>
-          {/* Dynamic Broadcast Pill (Toast) */}
+          {/* Toast Notification */}
           <AnimatePresence>
             {toastMessage && (
               <motion.div
                 initial={{ opacity: 0, y: -50, scale: 0.9 }}
                 animate={{ opacity: 1, y: 20, scale: 1 }}
                 exit={{ opacity: 0, y: -50, scale: 0.9 }}
-                className="fixed top-4 left-1/2 -translate-x-1/2 z-[99999] bg-black/80 backdrop-blur-md text-white px-6 py-3 rounded-full shadow-2xl border border-white/10 flex items-center gap-3"
+                className="fixed top-4 left-1/2 -translate-x-1/2 z-[99999] bg-black/80 backdrop-blur-md text-white px-6 py-3 rounded-full shadow-2xl border border-white/10 flex items-center gap-3 pointer-events-none"
               >
                 <span className="text-xl">🔔</span>
                 <p className="font-semibold text-sm">{toastMessage}</p>
               </motion.div>
             )}
-            
-            {/* System Blackout Event */}
+
+            {/* System Blackout */}
             {isBlackout && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -354,7 +334,7 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
             </div>
           )}
 
-          {/* DEV DIAGNOSTICS */}
+          {/* Debug Pill — visible only when enabled in /dev */}
           {showDebugPill && pathname !== '/dev' && (
             <div className="fixed bottom-2 left-2 z-[999999] bg-black/80 text-white text-[10px] font-mono p-2 rounded border border-zinc-800 pointer-events-none opacity-50">
               <div>WS: {debugState}</div>

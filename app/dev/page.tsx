@@ -50,7 +50,6 @@ export default function OmniscienceDashboard() {
   
   const [showDebugPill, setShowDebugPill] = useState(false);
   const [isPanicMode, setIsPanicMode] = useState(false);
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
   const [holdTimeout, setHoldTimeout] = useState<NodeJS.Timeout | null>(null);
   const [toastInput, setToastInput] = useState('');
@@ -80,11 +79,9 @@ export default function OmniscienceDashboard() {
 
   useEffect(() => {
     fetchAllData();
-    logIncident({ type: 'SYSTEM', title: 'Omniscience Boot', subtitle: 'System initialized' });
-    logIncident({ type: 'SYSTEM', title: 'Omniscience V5 Online', subtitle: 'All telemetry linked.', isMajor: true });
   }, []);
 
-  // Track Peak
+  // Track Peak Users
   useEffect(() => { if (onlineUsers > peakUsers) setPeakUsers(onlineUsers); }, [onlineUsers, peakUsers]);
 
   // DB Ping
