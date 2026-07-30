@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { getSupabase } from '@/lib/supabase/client';
 import { usePathname } from 'next/navigation';
 import confetti from 'canvas-confetti';
@@ -47,6 +48,7 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
   const [isBlackout, setIsBlackout] = useState(false);
   const [hearts, setHearts] = useState<{ id: number, x: number }[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   
   // DIAGNOSTICS
   const [debugState, setDebugState] = useState<string>('INIT');
@@ -67,16 +69,8 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
         setLatency(duration);
         setLastActivity(new Date().toISOString());
         
-        // Broadcast API Performance
+        // API Performance tracking (Local only)
         const urlObj = typeof args[0] === 'string' ? new URL(args[0], window.location.origin) : null;
-        if (urlObj && urlObj.pathname.startsWith('/api/')) {
-          const supabase = getSupabase();
-          supabase.channel('global_telemetry').send({
-            type: 'broadcast',
-            event: 'api_metric',
-            payload: { endpoint: urlObj.pathname, latency: duration }
-          });
-        }
         
         return response;
       } catch (error) {
@@ -86,16 +80,14 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
 
     // Intercept Errors
     const handleError = (msg: string, source?: string) => {
-      const supabase = getSupabase();
-      supabase.channel('global_telemetry').send({
-        type: 'broadcast',
-        event: 'client_error',
-        payload: { message: msg, source, url: window.location.pathname }
-      });
+      // Local error logging only
+      console.error(`[Client Error] ${msg} at ${source || 'Unknown'}`);
     };
     
     window.addEventListener('error', (e) => handleError(e.message, e.filename));
     window.addEventListener('unhandledrejection', (e) => handleError(e.reason?.toString() || 'Unknown', 'Promise'));
+
+    setMounted(true);
 
     return () => {
       window.fetch = originalFetch;
@@ -285,71 +277,75 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
         {children}
       </div>
 
-      {/* Dynamic Broadcast Pill (Toast) */}
-      <AnimatePresence>
-        {toastMessage && (
-          <motion.div
-            initial={{ opacity: 0, y: -50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -50, scale: 0.9 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-zinc-900/95 backdrop-blur-md border border-primary/50 text-white px-6 py-3 rounded-full shadow-[0_0_30px_rgba(225,29,116,0.4)] flex items-center gap-3"
-          >
-            <div className="flex items-center gap-1.5 bg-primary/20 text-primary px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase shadow-inner">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              SYSTEM ADMIN
+      {mounted && createPortal(
+        <>
+          {/* Dynamic Broadcast Pill (Toast) */}
+          <AnimatePresence>
+            {toastMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -50, scale: 0.9 }}
+                animate={{ opacity: 1, y: 20, scale: 1 }}
+                exit={{ opacity: 0, y: -50, scale: 0.9 }}
+                className="fixed top-4 left-1/2 -translate-x-1/2 z-[99999] bg-black/80 backdrop-blur-md text-white px-6 py-3 rounded-full shadow-2xl border border-white/10 flex items-center gap-3"
+              >
+                <span className="text-xl">🔔</span>
+                <p className="font-semibold text-sm">{toastMessage}</p>
+              </motion.div>
+            )}
+            
+            {/* System Blackout Event */}
+            {isBlackout && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className="fixed inset-0 z-[99999] bg-black pointer-events-none flex items-center justify-center"
+              >
+                <div className="text-red-500 font-mono text-sm tracking-widest animate-pulse">SYSTEM_BLACKOUT_INITIATED</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Floating Hearts */}
+          {hearts.map(h => (
+            <motion.div
+              key={h.id}
+              initial={{ y: '100vh', opacity: 1, x: `${h.x}vw`, scale: 0.5 }}
+              animate={{ y: '-10vh', opacity: 0, x: `${h.x + (Math.random() * 10 - 5)}vw`, scale: 1.5 }}
+              transition={{ duration: 3, ease: 'easeOut' }}
+              className="fixed z-[99998] text-4xl pointer-events-none"
+              style={{ bottom: '-10vh', left: 0 }}
+            >
+              💖
+            </motion.div>
+          ))}
+
+          {/* Maintenance Mode Overlay */}
+          {isMaintenance && (
+            <div className="fixed inset-0 z-[99999] bg-[#09090b] flex flex-col items-center justify-center font-mono text-zinc-300">
+              <h1 className="text-4xl font-bold text-red-500 mb-4 animate-pulse">SYSTEM MAINTENANCE</h1>
+              <p className="text-zinc-500 max-w-md text-center mb-8">
+                The system is currently undergoing critical maintenance. Please wait...
+              </p>
+              <div className="flex gap-2">
+                <span className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce" />
+                <span className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce delay-100" />
+                <span className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce delay-200" />
+              </div>
             </div>
-            <span className="font-semibold tracking-wide whitespace-nowrap pl-1">{toastMessage}</span>
-          </motion.div>
-        )}
-        
-        {isBlackout && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-black flex items-center justify-center pointer-events-none"
-          >
-            <span className="text-red-600 font-mono text-2xl md:text-5xl tracking-[0.5em] animate-pulse font-bold">STAND BY</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
 
-      {/* Floating Hearts */}
-      {hearts.map(h => (
-        <motion.div
-          key={h.id}
-          initial={{ y: '100vh', opacity: 1, scale: 0.5 }}
-          animate={{ y: '-20vh', opacity: 0, scale: 1.5 }}
-          transition={{ duration: 1.5 + Math.random(), ease: 'easeOut' }}
-          className="fixed z-[9998] text-4xl pointer-events-none"
-          style={{ left: `${h.x}vw` }}
-        >
-          💖
-        </motion.div>
-      ))}
-
-      {/* Maintenance Mode Overlay */}
-      {isMaintenance && (
-        <div className="fixed inset-0 z-[999] bg-[#09090b] flex flex-col items-center justify-center font-mono text-zinc-300">
-          <h1 className="text-4xl font-bold text-red-500 mb-4 animate-pulse">SYSTEM MAINTENANCE</h1>
-          <p className="text-zinc-500 max-w-md text-center mb-8">
-            The system is currently undergoing critical maintenance. Please wait...
-          </p>
-          <div className="flex gap-2">
-            <span className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce" />
-            <span className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce delay-100" />
-            <span className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce delay-200" />
-          </div>
-        </div>
-      )}
-
-      {/* DEV DIAGNOSTICS */}
-      {pathname !== '/dev' && (
-        <div className="fixed bottom-2 left-2 z-[999999] bg-black/80 text-white text-[10px] font-mono p-2 rounded border border-zinc-800 pointer-events-none opacity-50">
-          <div>WS: {debugState}</div>
-          <div>EVT: {lastEvent}</div>
-          <div>PATH: {pathname}</div>
-        </div>
+          {/* DEV DIAGNOSTICS */}
+          {pathname !== '/dev' && (
+            <div className="fixed bottom-2 left-2 z-[999999] bg-black/80 text-white text-[10px] font-mono p-2 rounded border border-zinc-800 pointer-events-none opacity-50">
+              <div>WS: {debugState}</div>
+              <div>EVT: {lastEvent}</div>
+              <div>PATH: {pathname}</div>
+            </div>
+          )}
+        </>,
+        document.body
       )}
     </PresenceContext.Provider>
   );
