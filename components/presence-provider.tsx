@@ -318,8 +318,8 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
           {hearts.map(h => (
             <motion.div
               key={h.id}
-              initial={{ y: '100vh', opacity: 1, x: `${h.x}vw`, scale: 0.5 }}
-              animate={{ y: '-10vh', opacity: 0, x: `${h.x + (Math.random() * 10 - 5)}vw`, scale: 1.5 }}
+              initial={{ y: '10vh', opacity: 1, x: `${h.x}vw`, scale: 0.5 }}
+              animate={{ y: '-120vh', opacity: 0, x: `${h.x + (Math.random() * 10 - 5)}vw`, scale: 1.5 }}
               transition={{ duration: 3, ease: 'easeOut' }}
               className="fixed z-[99998] text-4xl pointer-events-none"
               style={{ bottom: '-10vh', left: 0 }}
