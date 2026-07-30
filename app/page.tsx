@@ -27,7 +27,7 @@ export default function HomePage() {
   const { data: gallery, loading: galleryLoading, error: galleryError } = useGallery();
   const { data: athletes, loading: athletesLoading, error: athletesError } = useAthletes();
   const { data: staff, loading: staffLoading, error: staffError } = useStaff();
-  const { data: cheer, loading: cheerLoading, error: cheerError } = useCheerMessages(true);
+  const { data: cheer, loading: cheerLoading, error: cheerError } = useCheerMessages();
   const { data: settings, loading: settingsLoading } = useSiteSettings();
 
   const containerVariants: Variants = {

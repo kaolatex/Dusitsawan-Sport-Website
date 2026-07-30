@@ -38,10 +38,14 @@ export function useSupabaseData<T>(
       .on('postgres_changes', { event: '*', schema: 'public', table }, () => {
         // When database changes, tell SWR to re-fetch and update cache automatically
         mutate();
-      })
-      .subscribe();
+      });
+
+    const timer = setTimeout(() => {
+      channel.subscribe();
+    }, 500);
 
     return () => {
+      clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, [table, enableRealtime, mutate]);
