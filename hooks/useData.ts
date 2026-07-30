@@ -10,7 +10,16 @@ import {
   fetchStaff,
   fetchCheerMessages,
   fetchSiteSettings,
+  fetchPhotoWall,
 } from '@/lib/supabase/services';
+
+export function usePhotoWall(status: 'pending' | 'approved' | 'rejected' = 'approved', limit = 50, enableRealtime: boolean = false) {
+  const fetcher = useCallback(async () => {
+    // For PhotoWall we skip the cache API because it's highly dynamic and user-generated
+    return fetchPhotoWall(status, limit);
+  }, [status, limit]);
+  return useSupabaseData('photo_wall', fetcher, enableRealtime);
+}
 
 export function useSports(enableRealtime: boolean = false) {
   const fetcher: typeof fetchSports = useCallback(async () => {

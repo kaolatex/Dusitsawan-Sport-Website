@@ -384,3 +384,116 @@ export async function incrementPageView(): Promise<void> {
     handleDbError(error);
   }
 }
+
+export async function updateCheerStatuses(ids: string[], status: 'approved' | 'pending' | 'flagged') {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('cheer_wall').update({ status }).in('id', ids);
+  if (error) handleDbError(error);
+}
+
+export async function deleteCheerMessages(ids: string[]) {
+  const supabase = getSupabase();
+  const { error } = await supabase.from('cheer_wall').delete().in('id', ids);
+  if (error) handleDbError(error);
+}
+
+export async function fetchPhotoWall(status: 'pending' | 'approved' | 'rejected' = 'approved', limit = 50) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('photo_wall')
+    .select('*')
+    .eq('status', status)
+    .order('is_pinned', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) handleDbError(error);
+  return data ?? [];
+}
+
+export async function uploadPhotoToWall(file: File, uploaderName: string, caption: string) {
+  const supabase = getSupabase();
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+  const filePath = `wall/${fileName}`;
+
+  // 1. Upload to storage
+  const { error: uploadError } = await supabase.storage
+    .from('photo_wall')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+
+  if (uploadError) handleDbError(uploadError);
+
+  // 2. Get public URL
+  const { data: publicUrlData } = supabase.storage
+    .from('photo_wall')
+    .getPublicUrl(filePath);
+
+  // 3. Insert into photo_wall table
+  const { data: insertedData, error: insertError } = await supabase
+    .from('photo_wall')
+    .insert({
+      image_url: publicUrlData.publicUrl,
+      uploader_name: uploaderName || 'ไม่ระบุนาม',
+      caption: caption || '',
+      status: 'pending' // default status
+    })
+    .select()
+    .single();
+
+  if (insertError) handleDbError(insertError);
+  return insertedData;
+}
+
+export async function updatePhotoWallStatus(ids: string[], status: 'approved' | 'rejected') {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from('photo_wall')
+    .update({ status })
+    .in('id', ids);
+
+  if (error) handleDbError(error);
+}
+
+export async function likePhotoWallPost(id: string) {
+  const supabase = getSupabase();
+  // Using RPC to increment likes safely
+  const { error } = await supabase.rpc('increment_photo_like', { photo_id: id });
+  
+  if (error) {
+    // Fallback if RPC doesn't exist
+    const { data: current } = await supabase.from('photo_wall').select('likes_count').eq('id', id).single();
+    if (current) {
+      const { error: updateErr } = await supabase
+        .from('photo_wall')
+        .update({ likes_count: (current.likes_count || 0) + 1 })
+        .eq('id', id);
+      if (updateErr) handleDbError(updateErr);
+    }
+  }
+}
+
+export async function deletePhotoWallPost(ids: string[]) {
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from('photo_wall')
+    .delete()
+    .in('id', ids);
+
+  if (error) handleDbError(error);
+}
+
+export async function fetchPhotoWallStatuses(ids: string[]) {
+  if (!ids || ids.length === 0) return [];
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('photo_wall')
+    .select('id, status')
+    .in('id', ids);
+  
+  if (error) handleDbError(error);
+  return data ?? [];
+}

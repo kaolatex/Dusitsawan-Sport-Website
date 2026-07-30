@@ -29,7 +29,9 @@ import {
   deleteSubcategory,
   deleteStaff,
   deleteCheerMessage,
+  deleteCheerMessages,
   updateCheerStatus,
+  updateCheerStatuses,
   upsertAthlete,
   updateAthlete,
   upsertGallery,
@@ -49,6 +51,9 @@ import {
   updateSportsOrder,
   updateSubcategoriesOrder,
   updateStaffOrder,
+  deletePhotoWallPost,
+  fetchPhotoWall,
+  updatePhotoWallStatus,
 } from '@/lib/supabase/services';
 import type { Tables, TablesInsert } from '@/lib/supabase/database.types';
 import type { MatchStatus } from '@/types';
@@ -93,6 +98,7 @@ type AdminTab =
   | 'medals'
   | 'staff'
   | 'cheer_wall'
+  | 'photo_wall'
   | 'analytics';
 
 const inputClass =
@@ -268,6 +274,8 @@ export default function AdminPage() {
   const cheerFetcher = useCallback(() => fetchCheerMessages(), []);
   const settingsFetcher = useCallback(() => fetchSiteSettings(), []);
   const subcatsFetcher = useCallback(() => fetchSubcategories(), []);
+  const photoWallFetcher = useCallback(() => fetchPhotoWall('pending', 200), []);
+  const approvedPhotoWallFetcher = useCallback(() => fetchPhotoWall('approved', 200), []);
 
   const { data: sports, refetch: refetchSports } = useSupabaseData('sports', sportsFetcher);
   const { data: subcategories, refetch: refetchSubcats } = useSupabaseData('sport_subcategories', subcatsFetcher);
@@ -279,6 +287,12 @@ export default function AdminPage() {
   const { data: staffList, refetch: refetchStaff } = useSupabaseData('staff', staffFetcher);
   const { data: cheerList, refetch: refetchCheer } = useSupabaseData('cheer_wall', cheerFetcher);
   const { data: siteSettings, refetch: refetchSettings } = useSupabaseData('site_settings', settingsFetcher);
+  const { data: pendingPhotos, refetch: refetchPhotoWall } = useSupabaseData('photo_wall', photoWallFetcher);
+  const { data: approvedPhotos, refetch: refetchApprovedPhotoWall } = useSupabaseData('photo_wall_approved', approvedPhotoWallFetcher);
+
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set());
+  const [selectedApprovedPhotoIds, setSelectedApprovedPhotoIds] = useState<Set<string>>(new Set());
+  const [selectedCheerIds, setSelectedCheerIds] = useState<Set<string>>(new Set());
 
   const [sportOptions, setSportOptions] = useState<{ id: string; name: string }[]>([]);
 
@@ -291,11 +305,11 @@ export default function AdminPage() {
     setTimeout(() => setMessage(null), 3000);
   };
 
-  const handleAction = async (action: () => Promise<void>) => {
+  const handleAction = async (action: () => Promise<void>, customSuccessMsg?: string) => {
     setSaving(true);
     try {
       await action();
-      showMessage('success', 'บันทึกข้อมูลสำเร็จ');
+      showMessage('success', customSuccessMsg || 'บันทึกข้อมูลสำเร็จ');
     } catch (err) {
       console.error("Admin Action Error:", err);
       const errorMsg = err instanceof Error
@@ -412,7 +426,6 @@ export default function AdminPage() {
     image_url: '',
   });
 
-  // --- Site Settings Form State ---
   const [settingsForm, setSettingsForm] = useState({
     announcement_text: siteSettings?.announcement_text || '🎉 ยินดีต้อนรับสู่การแข่งขันกีฬาสี คณะ 2 สีชมพู ดุสิตสวรรค์ธัญมหาปราสาท!',
     is_announcement_active: siteSettings?.is_announcement_active ?? true,
@@ -421,6 +434,7 @@ export default function AdminPage() {
     show_countdown_on_home: siteSettings?.show_countdown_on_home ?? true,
     show_medals_on_home: siteSettings?.show_medals_on_home ?? true,
     show_cheer_on_home: siteSettings?.show_cheer_on_home ?? false,
+    is_photo_wall_paused: siteSettings?.is_photo_wall_paused ?? false,
   });
 
   useEffect(() => {
@@ -433,6 +447,7 @@ export default function AdminPage() {
         show_countdown_on_home: siteSettings.show_countdown_on_home ?? true,
         show_medals_on_home: siteSettings.show_medals_on_home ?? true,
         show_cheer_on_home: siteSettings.show_cheer_on_home ?? false,
+        is_photo_wall_paused: siteSettings.is_photo_wall_paused ?? false,
       });
     }
   }, [siteSettings]);
@@ -447,7 +462,8 @@ export default function AdminPage() {
     { id: 'athletes', label: 'นักกีฬา', icon: <Users size={14} /> },
     { id: 'medals', label: 'เหรียญรางวัล', icon: <Award size={14} /> },
     { id: 'staff', label: 'เจ้าหน้าที่/ทีมงาน', icon: <UserCheck size={14} /> },
-    { id: 'cheer_wall', label: 'Cheer Wall (กำแพงเชียร์)', icon: <MessageSquare size={14} /> },
+    { id: 'cheer_wall', label: 'Cheer Wall', icon: <MessageSquare size={14} /> },
+    { id: 'photo_wall', label: '🖼️ ตรวจสอบรูป', icon: <ImageIcon size={14} /> },
     { id: 'analytics', label: 'สถิติการเข้าชม', icon: <BarChart2 size={14} /> },
   ];
 
@@ -1389,35 +1405,98 @@ export default function AdminPage() {
             {/* CHEER WALL MODERATION TAB */}
             {activeTab === 'cheer_wall' && (
               <Panel title="💬 จัดการกำแพงส่งกำลังใจ (Cheer Wall Moderation)">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
+                  <h4 className="font-bold text-sm text-text-primary">
+                    ข้อความทั้งหมด ({(cheerList ?? []).length})
+                  </h4>
+                  {selectedCheerIds.size > 0 && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-text-secondary font-medium mr-2">
+                        เลือก {selectedCheerIds.size} รายการ
+                      </span>
+                      <button
+                        onClick={() => handleAction(async () => {
+                          await updateCheerStatuses(Array.from(selectedCheerIds), 'approved');
+                          setSelectedCheerIds(new Set());
+                          refetchCheer();
+                        })}
+                        className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-[10px] font-bold shadow-md hover:bg-green-600 transition-colors"
+                      >
+                        Approve ({selectedCheerIds.size})
+                      </button>
+                      <button
+                        onClick={() => handleAction(async () => {
+                          await updateCheerStatuses(Array.from(selectedCheerIds), 'flagged');
+                          setSelectedCheerIds(new Set());
+                          refetchCheer();
+                        })}
+                        className="px-3 py-1.5 bg-yellow-500 text-white rounded-lg text-[10px] font-bold shadow-md hover:bg-yellow-600 transition-colors"
+                      >
+                        Hide ({selectedCheerIds.size})
+                      </button>
+                      <button
+                        onClick={() => handleAction(async () => {
+                          if (!confirm('แน่ใจหรือไม่ว่าต้องการลบข้อความที่เลือก?')) return;
+                          await deleteCheerMessages(Array.from(selectedCheerIds));
+                          setSelectedCheerIds(new Set());
+                          refetchCheer();
+                        })}
+                        className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-[10px] font-bold shadow-md hover:bg-red-600 transition-colors"
+                      >
+                        Delete ({selectedCheerIds.size})
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
                   {(cheerList ?? []).length === 0 ? (
                     <p className="text-xs text-text-secondary text-center py-6">ยังไม่มีข้อความกำลังใจในระบบ</p>
                   ) : (
-                    (cheerList ?? []).map(item => (
+                    (cheerList ?? []).map(item => {
+                      const isSelected = selectedCheerIds.has(item.id);
+                      return (
                       <div
                         key={item.id}
-                        className="p-4 rounded-2xl bg-surface border border-border/30 flex items-start justify-between gap-4 text-xs shadow-2xs"
+                        onClick={() => {
+                          const newSet = new Set(selectedCheerIds);
+                          if (isSelected) newSet.delete(item.id);
+                          else newSet.add(item.id);
+                          setSelectedCheerIds(newSet);
+                        }}
+                        className={`p-4 rounded-2xl bg-surface border flex items-start justify-between gap-4 text-xs shadow-2xs cursor-pointer transition-all ${
+                          isSelected ? 'border-primary shadow-md bg-primary/5' : 'border-border/30 hover:border-primary/50'
+                        }`}
                       >
-                        <div className="space-y-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-text-primary">{item.author_name}</span>
-                            {item.is_anonymous && (
-                              <span className="px-2 py-0.5 rounded-full bg-surface-card text-text-secondary text-[9px] border">
-                                นิรนาม
-                              </span>
-                            )}
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                              item.status === 'approved' ? 'bg-green-100 text-green-700' :
-                              item.status === 'flagged' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'
-                            }`}>
-                              {item.status}
-                            </span>
+                        <div className="flex items-start gap-3 min-w-0">
+                          {/* Checkbox */}
+                          <div className={`mt-1 shrink-0 w-4 h-4 rounded border flex items-center justify-center ${
+                            isSelected ? 'bg-primary border-primary' : 'bg-white border-slate-300'
+                          }`}>
+                            {isSelected && <Check size={10} className="text-white" />}
                           </div>
-                          <p className="text-text-secondary leading-relaxed">{item.message}</p>
-                          <span className="text-[9px] text-text-secondary font-mono">{new Date(item.created_at).toLocaleString('th-TH')}</span>
+
+                          <div className="space-y-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-text-primary">{item.author_name}</span>
+                              {item.is_anonymous && (
+                                <span className="px-2 py-0.5 rounded-full bg-surface-card text-text-secondary text-[9px] border">
+                                  นิรนาม
+                                </span>
+                              )}
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                item.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                item.status === 'flagged' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'
+                              }`}>
+                                {item.status}
+                              </span>
+                            </div>
+                            <p className="text-text-secondary leading-relaxed">{item.message}</p>
+                            <span className="text-[9px] text-text-secondary font-mono">{new Date(item.created_at).toLocaleString('th-TH')}</span>
+                          </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                           {item.status !== 'approved' && (
                             <button
                               type="button"
@@ -1448,10 +1527,180 @@ export default function AdminPage() {
                           </button>
                         </div>
                       </div>
-                    ))
+                    )})
                   )}
                 </div>
               </Panel>
+            )}
+
+            {/* PHOTO WALL TAB */}
+            {activeTab === 'photo_wall' && (
+              <div className="space-y-6">
+                <Panel title="🖼️ จัดการรูประบบ (Photo Wall)">
+                  <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+                    <p className="text-sm text-text-secondary">ตรวจสอบและอนุมัติรูปภาพจากผู้เข้าร่วมงาน (Community)</p>
+                    
+                    {/* Global Pause Switch */}
+                    <div className="flex items-center gap-3 bg-surface-card border border-border/40 p-3 rounded-xl shadow-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                        <span className="text-xs font-bold text-text-primary">ปิดรับรูปชั่วคราว</span>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.is_photo_wall_paused}
+                        onChange={(e) => {
+                          const val = e.target.checked;
+                          setSettingsForm(f => ({ ...f, is_photo_wall_paused: val }));
+                          handleAction(async () => {
+                            await upsertSiteSettings({ ...settingsForm, is_photo_wall_paused: val });
+                            refetchSettings();
+                          });
+                        }}
+                        className="w-4 h-4 text-red-500 accent-red-500 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-bold text-sm text-text-primary">
+                      รูปภาพรอการตรวจสอบ ({pendingPhotos?.length || 0})
+                    </h4>
+                    {selectedPhotoIds.size > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-text-secondary font-medium mr-2">
+                          เลือก {selectedPhotoIds.size} รูป
+                        </span>
+                        <button
+                          onClick={() => handleAction(async () => {
+                            await updatePhotoWallStatus(Array.from(selectedPhotoIds), 'approved');
+                            setSelectedPhotoIds(new Set());
+                            refetchPhotoWall();
+                            refetchApprovedPhotoWall();
+                          }, `✅ อนุมัติรูปภาพสำเร็จ (${selectedPhotoIds.size} รูป)`)}
+                          className="px-3 py-1.5 bg-green-500 text-white rounded-lg text-xs font-bold shadow-md hover:bg-green-600 transition-colors"
+                        >
+                          Approve ({selectedPhotoIds.size})
+                        </button>
+                        <button
+                          onClick={() => handleAction(async () => {
+                            await updatePhotoWallStatus(Array.from(selectedPhotoIds), 'rejected');
+                            setSelectedPhotoIds(new Set());
+                            refetchPhotoWall();
+                          }, `❌ ปฏิเสธรูปภาพสำเร็จ (${selectedPhotoIds.size} รูป)`)}
+                          className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-bold shadow-md hover:bg-red-600 transition-colors"
+                        >
+                          Reject ({selectedPhotoIds.size})
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {pendingPhotos?.length === 0 ? (
+                      <div className="col-span-full text-center py-12 bg-surface rounded-2xl border border-border/40">
+                        <CheckCircle2 size={32} className="text-green-500 mx-auto mb-2" />
+                        <p className="text-sm text-text-secondary font-medium">ไม่มีรูปภาพรอตรวจ (เคลียร์หมดแล้ว!)</p>
+                      </div>
+                    ) : (
+                      pendingPhotos?.map((photo: any) => {
+                        const isSelected = selectedPhotoIds.has(photo.id);
+                        return (
+                          <div 
+                            key={photo.id} 
+                            onClick={() => {
+                              const newSet = new Set(selectedPhotoIds);
+                              if (isSelected) newSet.delete(photo.id);
+                              else newSet.add(photo.id);
+                              setSelectedPhotoIds(newSet);
+                            }}
+                            className={`relative rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${
+                              isSelected ? 'border-primary shadow-md' : 'border-border/30 hover:border-primary/50'
+                            }`}
+                          >
+                            <img src={photo.image_url} alt="Pending" className="w-full aspect-square object-cover" />
+                            
+                            {/* Checkbox Overlay */}
+                            <div className="absolute top-2 left-2 w-5 h-5 rounded bg-white border border-slate-300 flex items-center justify-center shadow-sm">
+                              {isSelected && <Check size={14} className="text-primary" />}
+                            </div>
+
+                            {/* Info Overlay */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2 backdrop-blur-sm">
+                              <p className="text-[10px] text-white font-medium truncate">{photo.uploader_name || 'ไม่ระบุ'}</p>
+                              <p className="text-[9px] text-white/70 truncate">{photo.caption}</p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* APPROVED PHOTOS SECTION */}
+                  <div className="mt-8 flex items-center justify-between mb-4 pt-8 border-t border-border/40">
+                    <h4 className="font-bold text-sm text-text-primary">
+                      รูปภาพที่อนุมัติแล้ว ({approvedPhotos?.length || 0})
+                    </h4>
+                    {selectedApprovedPhotoIds.size > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-text-secondary font-medium mr-2">
+                          เลือก {selectedApprovedPhotoIds.size} รูป
+                        </span>
+                        <button
+                          onClick={() => handleAction(async () => {
+                            if (!confirm('แน่ใจหรือไม่ว่าต้องการลบรูปที่เลือก?')) return;
+                            await deletePhotoWallPost(Array.from(selectedApprovedPhotoIds));
+                            setSelectedApprovedPhotoIds(new Set());
+                            refetchApprovedPhotoWall();
+                          }, `🗑️ ลบรูปภาพสำเร็จ (${selectedApprovedPhotoIds.size} รูป)`)}
+                          className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-bold shadow-md hover:bg-red-600 transition-colors flex items-center gap-1"
+                        >
+                          <Trash2 size={12} />
+                          ลบรูปทิ้ง
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {approvedPhotos?.length === 0 ? (
+                      <div className="col-span-full text-center py-12 bg-surface rounded-2xl border border-border/40">
+                        <p className="text-sm text-text-secondary font-medium">ยังไม่มีรูปภาพที่อนุมัติ</p>
+                      </div>
+                    ) : (
+                      approvedPhotos?.map((photo: any) => {
+                        const isSelected = selectedApprovedPhotoIds.has(photo.id);
+                        return (
+                          <div 
+                            key={photo.id} 
+                            onClick={() => {
+                              const newSet = new Set(selectedApprovedPhotoIds);
+                              if (isSelected) newSet.delete(photo.id);
+                              else newSet.add(photo.id);
+                              setSelectedApprovedPhotoIds(newSet);
+                            }}
+                            className={`relative rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${
+                              isSelected ? 'border-red-500 shadow-md' : 'border-border/30 hover:border-red-500/50'
+                            }`}
+                          >
+                            <img src={photo.image_url} alt="Approved" className="w-full aspect-square object-cover opacity-80" />
+                            
+                            {/* Checkbox Overlay */}
+                            <div className="absolute top-2 left-2 w-5 h-5 rounded bg-white border border-slate-300 flex items-center justify-center shadow-sm">
+                              {isSelected && <Check size={14} className="text-red-500" />}
+                            </div>
+
+                            {/* Info Overlay */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2 backdrop-blur-sm">
+                              <p className="text-[10px] text-white font-medium truncate">{photo.uploader_name || 'ไม่ระบุ'}</p>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </Panel>
+              </div>
             )}
 
             {/* ANALYTICS TAB */}

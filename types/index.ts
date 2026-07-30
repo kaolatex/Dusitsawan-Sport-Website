@@ -97,6 +97,38 @@ export interface GalleryImage {
   pinnedOrder?: number;
 }
 
+export interface CheerMessage {
+  id: string;
+  name: string;
+  message: string;
+  is_pinned?: boolean;
+  pinned_order?: number;
+  created_at: string;
+}
+
+export interface SiteSettings {
+  id: string;
+  is_announcement_active: boolean;
+  announcement_text?: string;
+  is_countdown_active: boolean;
+  event_date?: string;
+  show_medals_on_home: boolean;
+  show_news_on_home: boolean;
+  show_matches_on_home: boolean;
+  is_photo_wall_paused?: boolean;
+}
+
+export interface PhotoWallPost {
+  id: string;
+  image_url: string;
+  uploader_name?: string;
+  caption?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  likes_count: number;
+  is_pinned: boolean;
+  created_at: string;
+}
+
 export interface NavItem {
   label: string;
   href: string;

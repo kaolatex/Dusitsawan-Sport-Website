@@ -7,7 +7,7 @@ import SectionTitle from '@/components/ui/section-title';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { fetchCheerMessages, submitCheerMessage } from '@/lib/supabase/services';
 import type { Tables } from '@/lib/supabase/database.types';
-import { Heart, Send, Sparkles, UserX, Clock, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { Heart, Send, Sparkles, UserX, Clock, MessageSquare, CheckCircle2, X } from 'lucide-react';
 
 const STICKERS = [
   { id: 'trophy', emoji: '🏆', label: 'ถ้วยรางวัล' },
@@ -185,13 +185,15 @@ export default function CheerPage() {
       </motion.div>
 
       {/* Floating Action Button */}
-      <button
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => setIsFormOpen(true)}
-        className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-30 flex items-center gap-2 px-5 py-3.5 bg-primary text-white rounded-full shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-1 active:scale-95 transition-all cursor-pointer border border-white/20"
+        className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-30 bg-primary hover:bg-primary-hover text-white px-5 py-3.5 rounded-full shadow-xl flex items-center justify-center gap-2 cursor-pointer"
       >
-        <Sparkles size={18} className="animate-pulse" />
-        <span className="font-bold text-xs">ส่งข้อความเชียร์</span>
-      </button>
+        <Sparkles size={20} />
+        <span className="font-bold text-sm">ส่งข้อความเชียร์</span>
+      </motion.button>
 
       {/* BottomSheet Form */}
       <AnimatePresence>
@@ -208,20 +210,30 @@ export default function CheerPage() {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 z-50 bg-surface-card rounded-t-[2.5rem] p-6 md:p-8 max-h-[90vh] overflow-y-auto border-t border-border/20 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] max-w-2xl mx-auto"
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed bottom-0 left-0 right-0 z-50 bg-surface rounded-t-3xl shadow-2xl max-h-[90vh] overflow-y-auto"
             >
-              <div className="w-12 h-1.5 bg-border/50 rounded-full mx-auto mb-6 cursor-grab" onClick={() => setIsFormOpen(false)} />
+              <div className="flex justify-center p-3">
+                <div className="w-12 h-1.5 bg-border rounded-full" />
+              </div>
               
-              <div className="space-y-6">
-                <div className="text-center space-y-1">
-                  <h3 className="text-xl font-bold text-text-primary flex items-center justify-center gap-2">
-                    <Sparkles size={20} className="text-primary" />
-                    ฝากข้อความเชียร์
-                  </h3>
-                  <p className="text-xs text-text-secondary">
-                    ร่วมส่งแรงใจให้ทัพนักกีฬาและกองเชียร์ คณะ 2 สีชมพู
-                  </p>
+              <div className="px-6 pb-8 pt-2 max-w-lg mx-auto">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-text-primary flex items-center gap-2">
+                      <Sparkles size={20} className="text-primary" />
+                      ฝากข้อความเชียร์
+                    </h3>
+                    <p className="text-sm text-text-secondary">
+                      ร่วมส่งแรงใจให้ทัพนักกีฬาและกองเชียร์ คณะ 2 สีชมพู
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsFormOpen(false)}
+                    className="p-2 bg-surface-card hover:bg-border/50 rounded-full transition-colors text-text-secondary"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
 
                 {successMsg && (
@@ -234,7 +246,7 @@ export default function CheerPage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Sticker Selector */}
                   <div className="space-y-2.5">
-                    <label className="text-[10px] font-bold uppercase text-text-secondary tracking-wider block text-center">
+                    <label className="block text-xs font-semibold text-text-secondary mb-1">
                       เลือกสติกเกอร์ส่งกำลังใจ
                     </label>
                     <div className="grid grid-cols-4 gap-2">
@@ -276,8 +288,8 @@ export default function CheerPage() {
                   </div>
 
                   {/* Author Name */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase text-text-secondary tracking-wider">
+                  <div>
+                    <label className="block text-xs font-semibold text-text-secondary mb-1">
                       ชื่อผู้ส่ง
                     </label>
                     <input
@@ -286,7 +298,7 @@ export default function CheerPage() {
                       value={isAnonymous ? 'กองเชียร์นิรนาม' : authorName}
                       onChange={(e) => setAuthorName(e.target.value)}
                       placeholder="เช่น พี่เมธา รุ่น 24, น้องฟ้า ม.5"
-                      className="w-full px-5 py-3.5 rounded-xl bg-surface border border-border/40 text-sm text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:opacity-60 transition-all"
+                      className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow text-text-primary disabled:opacity-60"
                     />
                   </div>
 
@@ -305,17 +317,17 @@ export default function CheerPage() {
                   </label>
 
                   {/* Message */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase text-text-secondary tracking-wider">
+                  <div>
+                    <label className="block text-xs font-semibold text-text-secondary mb-1">
                       ข้อความส่งกำลังใจ
                     </label>
                     <textarea
                       required
-                      rows={3}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="พิมพ์ข้อความเชียร์ของคุณที่นี่..."
-                      className="w-full px-5 py-3.5 rounded-xl bg-surface border border-border/40 text-sm text-text-primary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none transition-all"
+                      className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow text-text-primary resize-none h-20"
+                      maxLength={300}
                     />
                   </div>
 
