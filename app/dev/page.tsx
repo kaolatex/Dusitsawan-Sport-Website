@@ -48,6 +48,7 @@ export default function OmniscienceDashboard() {
   const [errorLog, setErrorLog] = useState<ClientError[]>([]);
   const [apiMetrics, setApiMetrics] = useState<Record<string, number[]>>({}); // URL -> latencies[]
   
+  const [showDebugPill, setShowDebugPill] = useState(false);
   const [isPanicMode, setIsPanicMode] = useState(false);
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
@@ -413,6 +414,23 @@ export default function OmniscienceDashboard() {
           className="w-full p-3 rounded-lg bg-black border border-red-900/50 text-red-400 flex justify-between items-center text-xs"
         >
           <span>PURGE NEXT.JS CACHE</span><Trash2 className="w-4 h-4" />
+        </button>
+
+        <button 
+          onClick={() => {
+            const newState = !showDebugPill;
+            setShowDebugPill(newState);
+            if (newState) {
+              localStorage.setItem('dev_debug_mode', 'true');
+            } else {
+              localStorage.removeItem('dev_debug_mode');
+            }
+            window.dispatchEvent(new Event('storage'));
+            logIncident({ type: 'SYSTEM', title: `Debug Pill ${newState ? 'Enabled' : 'Disabled'}`, isMajor: false });
+          }}
+          className={`w-full p-3 rounded-lg flex justify-between items-center text-xs font-bold transition-colors ${showDebugPill ? 'bg-indigo-900/40 text-indigo-300 border border-indigo-500/50' : 'bg-black text-indigo-500/70 border border-indigo-900/30'}`}
+        >
+          <span>{showDebugPill ? 'HIDE DEBUG PILL' : 'SHOW DEBUG PILL'}</span><Terminal className="w-4 h-4" />
         </button>
       </div>
 

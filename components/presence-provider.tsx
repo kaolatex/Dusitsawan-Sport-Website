@@ -50,6 +50,18 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   
+  const [showDebugPill, setShowDebugPill] = useState(false);
+
+  // Read debug pill state from localStorage and listen for changes
+  useEffect(() => {
+    setShowDebugPill(localStorage.getItem('dev_debug_mode') === 'true');
+    const handleStorageChange = () => {
+      setShowDebugPill(localStorage.getItem('dev_debug_mode') === 'true');
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+  
   // DIAGNOSTICS
   const [debugState, setDebugState] = useState<string>('INIT');
   const [lastEvent, setLastEvent] = useState<string>('NONE');
@@ -344,7 +356,7 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
           )}
 
           {/* DEV DIAGNOSTICS */}
-          {pathname !== '/dev' && (
+          {showDebugPill && pathname !== '/dev' && (
             <div className="fixed bottom-2 left-2 z-[999999] bg-black/80 text-white text-[10px] font-mono p-2 rounded border border-zinc-800 pointer-events-none opacity-50">
               <div>WS: {debugState}</div>
               <div>EVT: {lastEvent}</div>
