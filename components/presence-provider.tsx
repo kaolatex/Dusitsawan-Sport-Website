@@ -226,28 +226,19 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
         setPresenceList(pList);
       });
 
-    let isMounted = true;
-    const timer = setTimeout(() => {
-      if (!isMounted) return;
-      channel.subscribe((status, err) => {
-        setDebugState(status);
-        if (status === 'SUBSCRIBED') {
-          setActiveChannel(channel);
-          updatePresence();
-        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-          setActiveChannel(null);
-          // Auto-reconnect if it closed unexpectedly
-          setTimeout(() => {
-            // Re-subscribe if channel closed, try again
-            channel.subscribe();
-          }, 3000);
-        }
-      });
-    }, 200);
+    // Set active channel immediately so `.send()` queues messages if called before connected
+    setActiveChannel(channel);
+
+    channel.subscribe((status, err) => {
+      setDebugState(status);
+      if (status === 'SUBSCRIBED') {
+        updatePresence();
+      } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+        if (err) console.error('Supabase Channel Error:', err);
+      }
+    });
 
     return () => {
-      isMounted = false;
-      clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, []); // Run only once on mount
