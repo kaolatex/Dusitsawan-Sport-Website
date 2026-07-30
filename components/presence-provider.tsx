@@ -110,7 +110,7 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
         presence: {
           key: sessionId,
         },
-        broadcast: { self: true },
+        broadcast: { ack: true, self: true },
       },
     });
 

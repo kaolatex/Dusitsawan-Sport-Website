@@ -79,6 +79,7 @@ export default function OmniscienceDashboard() {
 
   useEffect(() => {
     fetchAllData();
+    logIncident({ type: 'SYSTEM', title: 'Omniscience Boot', subtitle: 'System initialized' });
     logIncident({ type: 'SYSTEM', title: 'Omniscience V5 Online', subtitle: 'All telemetry linked.', isMajor: true });
   }, []);
 
