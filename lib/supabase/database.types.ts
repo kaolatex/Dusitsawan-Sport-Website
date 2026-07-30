@@ -366,6 +366,39 @@ export interface Database {
         };
         Relationships: [];
       };
+      photo_wall: {
+        Row: {
+          id: string;
+          image_url: string;
+          uploader_name: string;
+          caption: string | null;
+          status: 'pending' | 'approved' | 'rejected' | 'flagged';
+          likes_count: number;
+          is_pinned: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          image_url: string;
+          uploader_name?: string;
+          caption?: string | null;
+          status?: 'pending' | 'approved' | 'rejected' | 'flagged';
+          likes_count?: number;
+          is_pinned?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          image_url?: string;
+          uploader_name?: string;
+          caption?: string | null;
+          status?: 'pending' | 'approved' | 'rejected' | 'flagged';
+          likes_count?: number;
+          is_pinned?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       site_settings: {
         Row: {
           id: string;
@@ -413,6 +446,10 @@ export interface Database {
     Functions: {
       increment_page_view: {
         Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
+      increment_photo_like: {
+        Args: { photo_id: string };
         Returns: undefined;
       };
     };

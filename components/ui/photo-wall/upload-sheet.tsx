@@ -37,7 +37,7 @@ export default function UploadSheet({ isOpen, onClose, settings }: UploadSheetPr
         // Fetch actual statuses from DB
         const ids = localPhotos.map((p: any) => p.id);
         if (ids.length > 0) {
-          fetchPhotoWallStatuses(ids).then(latestData => {
+          fetchPhotoWallStatuses(ids).then((latestData: any[]) => {
             if (latestData && latestData.length > 0) {
               const updatedPhotos = localPhotos.map((p: any) => {
                 const latest = latestData.find((d: any) => d.id === p.id);

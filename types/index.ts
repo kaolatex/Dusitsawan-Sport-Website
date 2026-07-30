@@ -109,12 +109,11 @@ export interface CheerMessage {
 export interface SiteSettings {
   id: string;
   is_announcement_active: boolean;
-  announcement_text?: string;
+  announcement_text?: string | null;
   is_countdown_active: boolean;
-  event_date?: string;
+  event_date?: string | null;
   show_medals_on_home: boolean;
-  show_news_on_home: boolean;
-  show_matches_on_home: boolean;
+  show_cheer_on_home: boolean;
   is_photo_wall_paused?: boolean;
 }
 
@@ -122,8 +121,8 @@ export interface PhotoWallPost {
   id: string;
   image_url: string;
   uploader_name?: string;
-  caption?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  caption?: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'flagged';
   likes_count: number;
   is_pinned: boolean;
   created_at: string;
