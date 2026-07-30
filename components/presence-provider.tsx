@@ -224,8 +224,12 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
           }
         }
         setPresenceList(pList);
-      })
-      .subscribe((status, err) => {
+      });
+
+    let isMounted = true;
+    const timer = setTimeout(() => {
+      if (!isMounted) return;
+      channel.subscribe((status, err) => {
         setDebugState(status);
         if (status === 'SUBSCRIBED') {
           setActiveChannel(channel);
@@ -234,12 +238,16 @@ export default function PresenceProvider({ children }: { children: React.ReactNo
           setActiveChannel(null);
           // Auto-reconnect if it closed unexpectedly
           setTimeout(() => {
-            if (mounted) channel.subscribe();
-          }, 2000);
+            // Re-subscribe if channel closed, try again
+            channel.subscribe();
+          }, 3000);
         }
       });
+    }, 200);
 
     return () => {
+      isMounted = false;
+      clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, []); // Run only once on mount
