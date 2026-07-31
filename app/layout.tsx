@@ -6,6 +6,7 @@ import Footer from "@/components/ui/footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import PresenceProvider from "@/components/presence-provider";
 import { Analytics } from "@vercel/analytics/react";
+import PreLaunchWrapper from "@/components/PreLaunchWrapper";
 
 const ibmPlexSansThai = IBM_Plex_Sans_Thai({
   weight: ["300", "400", "500", "600", "700"],
@@ -43,11 +44,13 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <PresenceProvider>
-            <Navbar />
-            <main className="flex-grow pt-20 md:pt-24 min-h-screen">{children}</main>
-            <Footer />
-          </PresenceProvider>
+          <PreLaunchWrapper>
+            <PresenceProvider>
+              <Navbar />
+              <main className="flex-grow pt-20 md:pt-24 min-h-screen">{children}</main>
+              <Footer />
+            </PresenceProvider>
+          </PreLaunchWrapper>
         </ThemeProvider>
         <Analytics />
       </body>
