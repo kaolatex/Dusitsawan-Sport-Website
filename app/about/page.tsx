@@ -142,7 +142,7 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
           {member.contact_info && (
             <div className="pt-1.5">
               <CopyContactButton 
-                type={member.contact_type === 'ig' || member.contact_info.startsWith('@') || member.contact_info.toLowerCase().includes('ig') ? 'ig' : 'phone'} 
+                type={member.contact_info.startsWith('@') || member.contact_info.toLowerCase().includes('ig') ? 'ig' : 'phone'} 
                 value={member.contact_info}
                 theme={isHacker ? 'hacker' : undefined}
               />
