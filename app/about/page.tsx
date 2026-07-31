@@ -8,6 +8,7 @@ import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { fetchStaff } from '@/lib/supabase/services';
 import type { Tables } from '@/lib/supabase/database.types';
 import { ShieldCheck, Compass, Heart, Users, User, Crown, Phone, Sparkles, MapPin, Globe, Camera, Share2, ExternalLink } from 'lucide-react';
+import CopyIgButton from '@/components/ui/copy-ig-button';
 
 import { CONTACT_INFO } from '@/constants';
 
@@ -118,10 +119,16 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
           )}
 
           {member.contact_info && (
-            <p className="text-[9px] text-accent-gold flex items-center gap-1 font-mono pt-0.5">
-              <Phone size={9} className="shrink-0" />
-              {member.contact_info}
-            </p>
+            <div className="pt-1.5">
+              {member.contact_info.startsWith('@') || member.contact_info.toLowerCase().includes('ig') ? (
+                <CopyIgButton igHandle={member.contact_info} />
+              ) : (
+                <p className="text-[9px] text-accent-gold flex items-center gap-1 font-mono">
+                  <Phone size={9} className="shrink-0" />
+                  {member.contact_info}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </motion.div>
