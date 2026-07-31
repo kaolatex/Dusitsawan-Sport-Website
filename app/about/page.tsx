@@ -16,65 +16,116 @@ function getInitial(name: string): string {
   return cleanName.charAt(0) || '?';
 }
 
+type FrameStyle = 'gold-glow' | 'pink-gradient' | 'silver' | 'normal';
+type CardSize = 'lg' | 'md' | 'sm';
+
+// Derive safe Tailwind classes from DB values — avoids dynamic string purging
+function getFrameClasses(style: FrameStyle | null): string {
+  switch (style) {
+    case 'gold-glow':     return 'border-amber-400/80 bg-amber-50/20 ring-4 ring-amber-400/20 shadow-lg shadow-amber-500/10';
+    case 'pink-gradient': return 'border-pink-400/80 bg-pink-50/20 ring-4 ring-pink-400/20 shadow-lg shadow-pink-500/10';
+    case 'silver':        return 'border-zinc-400/70 bg-zinc-100/30 ring-4 ring-zinc-300/20 shadow-md shadow-zinc-400/5';
+    default:              return 'border-border/20 bg-surface-card shadow-sm';
+  }
+}
+
+function getAvatarBorderClass(style: FrameStyle | null): string {
+  switch (style) {
+    case 'gold-glow':     return 'border-amber-400';
+    case 'pink-gradient': return 'border-pink-400';
+    case 'silver':        return 'border-zinc-400';
+    default:              return 'border-primary/20';
+  }
+}
+
+function getAvatarSizeClass(size: CardSize | null): string {
+  switch (size) {
+    case 'lg': return 'w-20 h-20';
+    case 'sm': return 'w-9 h-9';
+    default:   return 'w-12 h-12';
+  }
+}
+
 function StaffCard({ member }: { member: Tables<'staff'> }) {
   const [imgError, setImgError] = useState(false);
   const hasAvatar = !!member.image_url && !imgError;
 
+  const frameStyle = (member.frame_style as FrameStyle | null) ?? 'normal';
+  const cardSize   = (member.card_size   as CardSize   | null) ?? 'md';
+  const isHighlight = member.highlight_priority ?? false;
+
+  const frameClasses      = getFrameClasses(frameStyle);
+  const avatarBorder      = getAvatarBorderClass(frameStyle);
+  const avatarSize        = getAvatarSizeClass(cardSize);
+  const nameSizeClass     = cardSize === 'lg' ? 'text-sm font-extrabold' : cardSize === 'sm' ? 'text-[10px] font-semibold' : 'text-xs font-bold';
+  const paddingClass      = cardSize === 'lg' ? 'p-5' : cardSize === 'sm' ? 'p-2.5' : 'p-4';
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4 }}
-      className="bg-surface-card rounded-2xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-all group relative overflow-hidden border border-border/20 active:scale-98"
-    >
-      <div className="absolute top-0 right-0 w-20 h-20 bg-primary/3 rounded-full translate-x-8 -translate-y-8 group-hover:scale-125 transition-transform" />
+    <div className="relative">
+      {/* Highlight priority badge — outside overflow-hidden so it's never clipped */}
+      {isHighlight && (
+        <span className="absolute -top-2 -right-2 z-20 bg-primary text-white text-[8px] font-bold px-2 py-0.5 rounded-full shadow-md leading-tight">
+          ⭐ TOP
+        </span>
+      )}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.4 }}
+        className={`relative rounded-2xl flex items-center gap-3.5 hover:shadow-md transition-all group overflow-hidden border-2 active:scale-98 ${frameClasses} ${paddingClass}`}
+      >
+        {/* Decorative bg shimmer */}
+        <div className="absolute top-0 right-0 w-20 h-20 bg-primary/3 rounded-full translate-x-8 -translate-y-8 group-hover:scale-125 transition-transform" />
 
-      {/* Avatar */}
-      <div className="w-12 h-12 rounded-full shrink-0 overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-accent-gold/15 flex items-center justify-center shadow-2xs">
-        {hasAvatar ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={member.image_url!}
-            alt={member.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <span className="text-primary font-extrabold text-sm select-none">
-            {getInitial(member.name)}
-          </span>
-        )}
-      </div>
-
-      {/* Details */}
-      <div className="flex flex-col min-w-0 space-y-0.5">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <h5 className="font-bold text-text-primary text-xs truncate group-hover:text-primary transition-colors">
-            {member.name}
-          </h5>
-          {member.position && (
-            <span className="inline-flex items-center gap-0.5 text-[8px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-              <Crown size={8} />
-              {member.position}
+        {/* Avatar */}
+        <div className={`shrink-0 rounded-full overflow-hidden border-2 ${avatarBorder} ${avatarSize} bg-gradient-to-br from-primary/10 via-primary/5 to-accent-gold/15 flex items-center justify-center shadow-2xs`}>
+          {hasAvatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={member.image_url!}
+              alt={member.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <span className={`text-primary font-extrabold select-none ${
+              cardSize === 'lg' ? 'text-2xl' : cardSize === 'sm' ? 'text-xs' : 'text-sm'
+            }`}>
+              {getInitial(member.name)}
             </span>
           )}
         </div>
 
-        {member.department && (
-          <p className="text-[10px] text-text-secondary font-medium">
-            {member.department}
-          </p>
-        )}
+        {/* Details */}
+        <div className="flex flex-col min-w-0 space-y-0.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <h5 className={`text-zinc-900 dark:text-zinc-100 truncate group-hover:text-primary transition-colors ${nameSizeClass}`}>
+              {member.name}
+            </h5>
+            {member.position && (
+              <span className="inline-flex items-center gap-0.5 text-[8px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                <Crown size={8} />
+                {member.position}
+              </span>
+            )}
+          </div>
 
-        {member.contact_info && (
-          <p className="text-[9px] text-accent-gold flex items-center gap-1 font-mono pt-0.5">
-            <Phone size={9} className="shrink-0" />
-            {member.contact_info}
-          </p>
-        )}
-      </div>
-    </motion.div>
+          {member.department && (
+            <p className="text-[10px] text-text-secondary font-medium">
+              {member.department}
+            </p>
+          )}
+
+          {member.contact_info && (
+            <p className="text-[9px] text-accent-gold flex items-center gap-1 font-mono pt-0.5">
+              <Phone size={9} className="shrink-0" />
+              {member.contact_info}
+            </p>
+          )}
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -98,8 +149,14 @@ export default function AboutPage() {
       groups[categoryType].push(member);
     });
 
+    // Sort: highlight_priority=true floats to top, then by display_order
     Object.keys(groups).forEach(key => {
-      groups[key].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+      groups[key].sort((a, b) => {
+        const priorityA = (a.highlight_priority ?? false) ? 0 : 1;
+        const priorityB = (b.highlight_priority ?? false) ? 0 : 1;
+        if (priorityA !== priorityB) return priorityA - priorityB;
+        return (a.display_order ?? 0) - (b.display_order ?? 0);
+      });
     });
 
     return groups;

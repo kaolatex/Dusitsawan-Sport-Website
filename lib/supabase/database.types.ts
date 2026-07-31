@@ -300,6 +300,9 @@ export interface Database {
           type: string | null;
           is_pinned: boolean;
           pinned_order: number;
+          frame_style: 'gold-glow' | 'pink-gradient' | 'silver' | 'normal' | null;
+          card_size: 'lg' | 'md' | 'sm' | null;
+          highlight_priority: boolean;
           created_at: string;
         };
         Insert: {
@@ -313,6 +316,9 @@ export interface Database {
           type?: string | null;
           is_pinned?: boolean;
           pinned_order?: number;
+          frame_style?: 'gold-glow' | 'pink-gradient' | 'silver' | 'normal' | null;
+          card_size?: 'lg' | 'md' | 'sm' | null;
+          highlight_priority?: boolean;
           created_at?: string;
         };
         Update: {
@@ -326,6 +332,9 @@ export interface Database {
           type?: string | null;
           is_pinned?: boolean;
           pinned_order?: number;
+          frame_style?: 'gold-glow' | 'pink-gradient' | 'silver' | 'normal' | null;
+          card_size?: 'lg' | 'md' | 'sm' | null;
+          highlight_priority?: boolean;
           created_at?: string;
         };
         Relationships: [];

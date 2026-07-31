@@ -424,6 +424,9 @@ export default function AdminPage() {
     type: 'Head',
     display_order: 0,
     image_url: '',
+    frame_style: 'normal' as 'gold-glow' | 'pink-gradient' | 'silver' | 'normal',
+    card_size: 'md' as 'lg' | 'md' | 'sm',
+    highlight_priority: false,
   });
 
   const [settingsForm, setSettingsForm] = useState({
@@ -1368,8 +1371,11 @@ export default function AdminPage() {
                           type: staffForm.type || null,
                           display_order: Number(staffForm.display_order) || 0,
                           image_url: staffForm.image_url || null,
+                          frame_style: staffForm.frame_style,
+                          card_size: staffForm.card_size,
+                          highlight_priority: staffForm.highlight_priority,
                         });
-                        setStaffForm({ id: '', name: '', position: '', department: '', contact_info: '', type: 'Head', display_order: 0, image_url: '' });
+                        setStaffForm({ id: '', name: '', position: '', department: '', contact_info: '', type: 'Head', display_order: 0, image_url: '', frame_style: 'normal', card_size: 'md', highlight_priority: false });
                         refetchStaff();
                       });
                     }}
@@ -1383,6 +1389,133 @@ export default function AdminPage() {
                       <FormField label="ช่องทางติดต่อ"><input className={inputClass} value={staffForm.contact_info} onChange={e => setStaffForm(f => ({ ...f, contact_info: e.target.value }))} /></FormField>
                       <ImageUploadField label="รูปโปรไฟล์" value={staffForm.image_url} onChange={url => setStaffForm(f => ({ ...f, image_url: url }))} bucket="staff-images" folder="staff" />
                     </div>
+
+                    {/* ── Card Frame & Scale Management ── */}
+                    <div className="mt-5 p-4 rounded-2xl bg-gradient-to-br from-primary/5 to-accent-gold/5 border border-primary/20 space-y-4">
+                      <h4 className="font-bold text-xs text-primary flex items-center gap-1.5">
+                        <span className="text-base">🎨</span> Card Frame & Scale Management
+                      </h4>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {/* Left: Controls */}
+                        <div className="space-y-4">
+                          {/* Size Selector */}
+                          <div>
+                            <p className="text-xs font-semibold text-text-secondary mb-2">ขนาดการ์ด (Card Size)</p>
+                            <div className="flex gap-2">
+                              {([['lg', '👑 Leader', 'w-24 h-24 text-base font-bold'], ['md', '⭐ Executive', 'w-20 h-20 text-sm'], ['sm', '👤 Standard', 'w-14 h-14 text-xs']] as const).map(([val, label]) => (
+                                <button
+                                  key={val}
+                                  type="button"
+                                  onClick={() => setStaffForm(f => ({ ...f, card_size: val }))}
+                                  className={`flex-1 py-2 px-1 rounded-xl border-2 text-[11px] font-bold text-center transition-all cursor-pointer ${
+                                    staffForm.card_size === val
+                                      ? 'border-primary bg-primary/10 text-primary'
+                                      : 'border-border/40 text-text-secondary hover:border-primary/40'
+                                  }`}
+                                >
+                                  {label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Frame Style Picker */}
+                          <div>
+                            <p className="text-xs font-semibold text-text-secondary mb-2">สไตล์กรอบ (Frame Style)</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              {([
+                                { val: 'gold-glow', label: '✨ Gold Aura', preview: 'border-amber-400 ring-2 ring-amber-300/40 bg-amber-50' },
+                                { val: 'pink-gradient', label: '💖 Pink Accent', preview: 'border-pink-400 ring-2 ring-pink-300/40 bg-pink-50' },
+                                { val: 'silver', label: '🌙 Dark Minimal', preview: 'border-zinc-400 ring-2 ring-zinc-300/30 bg-zinc-100' },
+                                { val: 'normal', label: '⬜ Standard', preview: 'border-border/30 bg-surface-card' },
+                              ] as const).map(({ val, label, preview }) => (
+                                <button
+                                  key={val}
+                                  type="button"
+                                  onClick={() => setStaffForm(f => ({ ...f, frame_style: val }))}
+                                  className={`px-3 py-2.5 rounded-xl border-2 text-[11px] font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                                    staffForm.frame_style === val
+                                      ? 'border-primary bg-primary/10 text-primary'
+                                      : 'border-border/40 text-text-secondary hover:border-primary/40'
+                                  }`}
+                                >
+                                  <span className={`w-4 h-4 rounded-full border-2 ${preview}`} />
+                                  {label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Highlight Priority Toggle */}
+                          <label className="flex items-center justify-between p-3 rounded-xl bg-surface border border-border/30 cursor-pointer hover:border-primary/40 transition-colors">
+                            <div>
+                              <p className="text-xs font-bold text-text-primary">⚡ Highlight Priority</p>
+                              <p className="text-[10px] text-text-secondary mt-0.5">แสดงขึ้นบนสุดในกลุ่ม</p>
+                            </div>
+                            <input
+                              type="checkbox"
+                              checked={staffForm.highlight_priority}
+                              onChange={e => setStaffForm(f => ({ ...f, highlight_priority: e.target.checked }))}
+                              className="w-4 h-4 accent-primary"
+                            />
+                          </label>
+                        </div>
+
+                        {/* Right: Live Preview */}
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Live Preview</p>
+                          <div className={`relative flex items-center gap-3 p-4 rounded-2xl border-2 transition-all w-full ${
+                            staffForm.frame_style === 'gold-glow'
+                              ? 'border-amber-400/80 bg-amber-50/20 ring-4 ring-amber-400/20 shadow-lg shadow-amber-500/10'
+                              : staffForm.frame_style === 'pink-gradient'
+                              ? 'border-pink-400/80 bg-pink-50/20 ring-4 ring-pink-400/20 shadow-lg shadow-pink-500/10'
+                              : staffForm.frame_style === 'silver'
+                              ? 'border-zinc-400/70 bg-zinc-100/30 ring-4 ring-zinc-300/20 shadow-lg shadow-zinc-500/5'
+                              : 'border-border/30 bg-surface-card'
+                          }`}>
+                            {staffForm.highlight_priority && (
+                              <span className="absolute -top-2 -right-2 text-xs bg-primary text-white px-1.5 py-0.5 rounded-full font-bold text-[9px]">TOP</span>
+                            )}
+                            <div className={`shrink-0 rounded-full overflow-hidden bg-gradient-to-br from-primary/20 to-accent-gold/20 flex items-center justify-center border-2 ${
+                              staffForm.card_size === 'lg' ? 'w-16 h-16' : staffForm.card_size === 'md' ? 'w-12 h-12' : 'w-9 h-9'
+                            } ${
+                              staffForm.frame_style === 'gold-glow' ? 'border-amber-400' : staffForm.frame_style === 'pink-gradient' ? 'border-pink-400' : staffForm.frame_style === 'silver' ? 'border-zinc-400' : 'border-primary/20'
+                            }`}>
+                              {staffForm.image_url ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={staffForm.image_url} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className={`font-extrabold text-primary ${
+                                  staffForm.card_size === 'lg' ? 'text-xl' : staffForm.card_size === 'md' ? 'text-base' : 'text-xs'
+                                }`}>
+                                  {staffForm.name ? staffForm.name.charAt(0) : '?'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className={`font-bold truncate text-zinc-900 dark:text-zinc-100 ${
+                                staffForm.card_size === 'lg' ? 'text-sm' : 'text-xs'
+                              }`}>
+                                {staffForm.name || 'ชื่อสมาชิก'}
+                              </p>
+                              {staffForm.position && (
+                                <p className="text-[10px] text-zinc-500 truncate">{staffForm.position}</p>
+                              )}
+                            </div>
+                          </div>
+                          <p className={`text-[9px] font-mono mt-1 px-2 py-0.5 rounded-full ${
+                            staffForm.frame_style === 'gold-glow' ? 'bg-amber-100 text-amber-700' :
+                            staffForm.frame_style === 'pink-gradient' ? 'bg-pink-100 text-pink-700' :
+                            staffForm.frame_style === 'silver' ? 'bg-zinc-100 text-zinc-600' :
+                            'bg-surface text-text-secondary'
+                          }`}>
+                            {staffForm.frame_style} · {staffForm.card_size}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
                     <SubmitButton saving={saving} label={staffForm.id ? 'อัปเดตข้อมูลเจ้าหน้าที่' : 'เพิ่มเจ้าหน้าที่'} />
                   </form>
                 </Panel>
@@ -1390,7 +1523,7 @@ export default function AdminPage() {
                   items={(staffList ?? []).map(s => ({
                     id: s.id,
                     label: `[${s.type || 'ทั่วไป'}] ${s.name}${s.position ? ` — ${s.position}` : ''}`,
-                    onEdit: () => setStaffForm({ id: s.id, name: s.name, position: s.position ?? '', department: s.department ?? '', contact_info: s.contact_info ?? '', type: s.type ?? '', display_order: s.display_order ?? 0, image_url: s.image_url ?? '' }),
+                    onEdit: () => setStaffForm({ id: s.id, name: s.name, position: s.position ?? '', department: s.department ?? '', contact_info: s.contact_info ?? '', type: s.type ?? '', display_order: s.display_order ?? 0, image_url: s.image_url ?? '', frame_style: (s.frame_style as any) ?? 'normal', card_size: (s.card_size as any) ?? 'md', highlight_priority: s.highlight_priority ?? false }),
                     onDelete: () => handleAction(async () => { await deleteStaff(s.id); refetchStaff(); })
                   }))}
                   onReorder={(newItems) => handleAction(async () => {
