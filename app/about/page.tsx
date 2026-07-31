@@ -8,7 +8,7 @@ import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { fetchStaff } from '@/lib/supabase/services';
 import type { Tables } from '@/lib/supabase/database.types';
 import { ShieldCheck, Compass, Heart, Users, User, Crown, Phone, Sparkles, MapPin, Globe, Camera, Share2, ExternalLink } from 'lucide-react';
-import CopyIgButton from '@/components/ui/copy-ig-button';
+import CopyContactButton from '@/components/ui/copy-contact-button';
 
 import { CONTACT_INFO } from '@/constants';
 
@@ -58,14 +58,14 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
   const frameClasses      = getFrameClasses(frameStyle);
   const avatarBorder      = getAvatarBorderClass(frameStyle);
   const avatarSize        = getAvatarSizeClass(cardSize);
-  const nameSizeClass     = cardSize === 'lg' ? 'text-sm font-extrabold' : cardSize === 'sm' ? 'text-[10px] font-semibold' : 'text-xs font-bold';
-  const paddingClass      = cardSize === 'lg' ? 'p-5' : cardSize === 'sm' ? 'p-2.5' : 'p-4';
+  const nameSizeClass     = cardSize === 'lg' ? 'text-base font-extrabold' : cardSize === 'sm' ? 'text-xs font-semibold' : 'text-sm font-bold';
+  const paddingClass      = cardSize === 'lg' ? 'p-5' : cardSize === 'sm' ? 'p-3' : 'p-4';
 
   return (
     <div className="relative">
       {/* Highlight priority badge — outside overflow-hidden so it's never clipped */}
       {isHighlight && (
-        <span className="absolute -top-2 -right-2 z-20 bg-primary text-white text-[8px] font-bold px-2 py-0.5 rounded-full shadow-md leading-tight">
+        <span className="absolute -top-2 -right-2 z-20 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-md leading-tight">
           ⭐ TOP
         </span>
       )}
@@ -91,7 +91,7 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
             />
           ) : (
             <span className={`text-primary font-extrabold select-none ${
-              cardSize === 'lg' ? 'text-2xl' : cardSize === 'sm' ? 'text-xs' : 'text-sm'
+              cardSize === 'lg' ? 'text-3xl' : cardSize === 'sm' ? 'text-sm' : 'text-xl'
             }`}>
               {getInitial(member.name)}
             </span>
@@ -100,34 +100,30 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
 
         {/* Details */}
         <div className="flex flex-col min-w-0 space-y-0.5">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <h5 className={`text-zinc-900 dark:text-zinc-100 truncate group-hover:text-primary transition-colors ${nameSizeClass}`}>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <h5 className={`text-zinc-900 dark:text-zinc-100 truncate min-w-0 group-hover:text-primary transition-colors ${nameSizeClass}`}>
               {member.name}
             </h5>
             {member.position && (
-              <span className="inline-flex items-center gap-0.5 text-[8px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                <Crown size={8} />
+              <span className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary shrink-0 whitespace-nowrap">
+                <Crown size={12} />
                 {member.position}
               </span>
             )}
           </div>
 
           {member.department && (
-            <p className="text-[10px] text-text-secondary font-medium">
+            <p className="text-xs text-text-secondary font-medium">
               {member.department}
             </p>
           )}
 
           {member.contact_info && (
             <div className="pt-1.5">
-              {member.contact_info.startsWith('@') || member.contact_info.toLowerCase().includes('ig') ? (
-                <CopyIgButton igHandle={member.contact_info} />
-              ) : (
-                <p className="text-[9px] text-accent-gold flex items-center gap-1 font-mono">
-                  <Phone size={9} className="shrink-0" />
-                  {member.contact_info}
-                </p>
-              )}
+              <CopyContactButton 
+                type={member.contact_type === 'ig' || member.contact_info.startsWith('@') || member.contact_info.toLowerCase().includes('ig') ? 'ig' : 'phone'} 
+                value={member.contact_info} 
+              />
             </div>
           )}
         </div>
@@ -215,7 +211,7 @@ export default function AboutPage() {
         <div className="flex gap-2 mb-6 md:mb-10 overflow-x-auto scrollbar-hide pb-2 justify-start snap-x">
           <button
             onClick={() => setActiveTab('staff')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center ${
+            className={`px-6 py-3 rounded-full text-sm font-bold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center active:scale-95 ${
               activeTab === 'staff'
                 ? 'bg-primary border-primary text-white shadow-xs'
                 : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'
@@ -225,7 +221,7 @@ export default function AboutPage() {
           </button>
           <button
             onClick={() => setActiveTab('about')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center ${
+            className={`px-6 py-3 rounded-full text-sm font-bold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center active:scale-95 ${
               activeTab === 'about'
                 ? 'bg-primary border-primary text-white shadow-xs'
                 : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'
@@ -235,7 +231,7 @@ export default function AboutPage() {
           </button>
           <button
             onClick={() => setActiveTab('contact')}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center ${
+            className={`px-6 py-3 rounded-full text-sm font-bold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center active:scale-95 ${
               activeTab === 'contact'
                 ? 'bg-primary border-primary text-white shadow-xs'
                 : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'
@@ -269,10 +265,10 @@ export default function AboutPage() {
                     เราเชื่อในการนำเสนอแนวคิดแบบไทยร่วมสมัย (Contemporary Thai) ดึงเอาจิตวิญญาณและความอ่อนช้อยของศิลปะไทย มาผสานกับสุนทรียศาสตร์ดิจิทัลยุคใหม่
                   </p>
                   <div className="flex items-center gap-2 pt-2">
-                    <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold tracking-wider">
+                    <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wider">
                       EST. 2026
                     </span>
-                    <span className="px-3 py-1.5 rounded-full bg-accent-gold/10 text-accent-gold text-[10px] font-bold tracking-wider">
+                    <span className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 text-xs font-bold tracking-wider">
                       CONTEMPORARY THAI
                     </span>
                   </div>
@@ -289,7 +285,7 @@ export default function AboutPage() {
                         {item.icon}
                       </div>
                       <h4 className="font-bold text-text-primary text-sm mb-2">{item.title}</h4>
-                      <p className="text-text-secondary text-xs leading-relaxed">{item.desc}</p>
+                      <p className="text-text-secondary text-sm leading-relaxed">{item.desc}</p>
                     </div>
                   ))}
                 </div>
@@ -306,8 +302,8 @@ export default function AboutPage() {
                 className="space-y-8 max-w-5xl mx-auto"
               >
                 <div className="text-center space-y-1.5 mb-6">
-                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-xs font-bold text-primary shadow-2xs">
-                    <Sparkles size={14} />
+                  <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 text-sm font-bold text-primary shadow-2xs">
+                    <Sparkles size={16} />
                     คณะผู้จัดทำ & เจ้าหน้าที่
                   </span>
                   <h3 className="text-xl md:text-2xl font-extrabold text-text-primary">
@@ -326,7 +322,7 @@ export default function AboutPage() {
                           <h4 className="font-bold text-text-primary text-sm uppercase tracking-wider">
                             {categoryType}
                           </h4>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface text-text-secondary font-mono border border-border/20">
+                          <span className="text-xs px-3 py-1 rounded-full bg-surface text-text-secondary font-mono border border-border/20">
                             {groupedStaff[categoryType].length} คน
                           </span>
                         </div>
@@ -360,7 +356,7 @@ export default function AboutPage() {
                   <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full translate-x-12 -translate-y-12" />
 
                   <div className="space-y-1 border-b border-border/30 pb-4 mb-5 relative z-10">
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 bg-primary/10 text-primary rounded-full inline-block mb-2">
+                    <span className="text-xs uppercase font-bold tracking-wider px-3 py-1 bg-primary/10 text-primary rounded-full inline-block mb-2">
                       Contact & Socials
                     </span>
                     <h3 className="text-lg md:text-xl font-extrabold text-text-primary flex items-center gap-2">
@@ -383,7 +379,7 @@ export default function AboutPage() {
                           <MapPin size={18} />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[11px] font-bold text-text-secondary uppercase mb-0.5">ที่อยู่โรงเรียน</span>
+                          <span className="text-xs font-bold text-text-secondary uppercase mb-0.5">ที่อยู่โรงเรียน</span>
                           <span className="text-xs sm:text-sm font-semibold text-text-primary leading-relaxed">{CONTACT_INFO.address}</span>
                         </div>
                       </div>
@@ -402,7 +398,7 @@ export default function AboutPage() {
                           <Camera size={18} />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[11px] font-bold text-text-secondary uppercase mb-0.5">IG คณะ 2 สีชมพู</span>
+                          <span className="text-xs font-bold text-text-secondary uppercase mb-0.5">IG คณะ 2 สีชมพู</span>
                           <span className="text-xs sm:text-sm font-semibold text-text-primary">{CONTACT_INFO.facultyIg}</span>
                         </div>
                       </div>
@@ -417,15 +413,15 @@ export default function AboutPage() {
                       className="flex items-center justify-between p-4 rounded-2xl bg-surface/80 border border-border/30 hover:border-accent-gold/40 transition-all shadow-2xs group cursor-pointer active:scale-98"
                     >
                       <div className="flex items-center gap-3.5">
-                        <div className="p-2 bg-accent-gold/10 rounded-xl text-accent-gold shrink-0">
+                        <div className="p-2 bg-amber-500/10 rounded-xl text-amber-600 shrink-0">
                           <Camera size={18} />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[11px] font-bold text-text-secondary uppercase mb-0.5">IG สภานักเรียน</span>
+                          <span className="text-xs font-bold text-text-secondary uppercase mb-0.5">IG สภานักเรียน</span>
                           <span className="text-xs sm:text-sm font-semibold text-text-primary">{CONTACT_INFO.studentCouncilIg}</span>
                         </div>
                       </div>
-                      <ExternalLink size={14} className="text-text-secondary group-hover:text-accent-gold transition-colors" />
+                      <ExternalLink size={14} className="text-text-secondary group-hover:text-amber-600 transition-colors" />
                     </a>
 
                     {/* School Facebook */}
@@ -440,7 +436,7 @@ export default function AboutPage() {
                           <Globe size={18} />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[11px] font-bold text-text-secondary uppercase mb-0.5">เพจ Facebook</span>
+                          <span className="text-xs font-bold text-text-secondary uppercase mb-0.5">เพจ Facebook</span>
                           <span className="text-xs sm:text-sm font-semibold text-text-primary truncate max-w-[200px]">{CONTACT_INFO.facebookPage}</span>
                         </div>
                       </div>
