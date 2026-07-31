@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { getSupabase } from '@/lib/supabase/client';
 import AdminLoginModal from '@/components/admin/admin-login-modal';
+import { Lock } from 'lucide-react';
 
 interface PreLaunchWrapperProps {
   children: React.ReactNode;
@@ -99,12 +100,12 @@ export default function PreLaunchWrapper({ children }: PreLaunchWrapperProps) {
     <div className={`fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center transition-opacity duration-1000 ${isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
       
       <div className="text-center space-y-10 px-6">
-        <h1 className="text-zinc-900 font-bold text-3xl md:text-5xl tracking-tight">
+        <h1 className="text-primary font-bold text-3xl md:text-5xl tracking-tight">
           เตรียมพบกันเร็วๆ นี้
         </h1>
         
         {timeLeft ? (
-          <div className="flex items-center justify-center gap-4 md:gap-8 text-zinc-800">
+          <div className="flex items-center justify-center gap-4 md:gap-8 text-primary">
             {Object.entries(timeLeft).map(([unit, value]) => (
               <div key={unit} className="flex flex-col items-center w-16 md:w-24">
                 <span className="text-4xl md:text-6xl font-black font-mono tracking-tighter">
@@ -121,16 +122,18 @@ export default function PreLaunchWrapper({ children }: PreLaunchWrapperProps) {
             <div className="w-8 h-8 rounded-full border-4 border-zinc-200 border-t-zinc-900 animate-spin"></div>
           </div>
         )}
-      </div>
 
-      {/* Secret Admin Backdoor */}
-      <button
-        onClick={() => setShowAdminModal(true)}
-        className="absolute bottom-6 opacity-10 hover:opacity-100 transition-opacity p-4 cursor-crosshair z-50"
-        aria-label="Admin Access"
-      >
-        <span className="w-1.5 h-1.5 rounded-full bg-zinc-400 block"></span>
-      </button>
+        {/* Secret Admin Backdoor (Moved below timer) */}
+        <div className="pt-8 flex justify-center">
+          <button
+            onClick={() => setShowAdminModal(true)}
+            className="opacity-50 hover:opacity-100 transition-opacity px-4 py-2 rounded-full border border-zinc-200 cursor-pointer flex items-center gap-2 text-zinc-500 text-xs font-mono"
+            aria-label="Admin Access"
+          >
+            <Lock size={14} /> <span>Admin Login</span>
+          </button>
+        </div>
+      </div>
 
       {/* Admin Login Modal Overlay */}
       {showAdminModal && (
