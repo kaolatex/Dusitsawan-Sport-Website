@@ -62,8 +62,8 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
   const paddingClass      = cardSize === 'lg' ? 'p-5' : cardSize === 'sm' ? 'p-3' : 'p-4';
 
   const isHacker = member.name.includes("ธนาธิป");
-  const finalFrameClasses = isHacker ? 'bg-zinc-950 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : frameClasses;
-  const finalAvatarBorder = isHacker ? 'border-emerald-500/50' : avatarBorder;
+  const finalFrameClasses = isHacker ? 'bg-zinc-950 border-zinc-800 shadow-[0_0_15px_rgba(0,0,0,0.5)] pt-10' : frameClasses;
+  const finalAvatarBorder = isHacker ? 'border-emerald-500/30' : avatarBorder;
   const finalNameClasses  = isHacker ? `text-emerald-400 font-mono tracking-wider ${nameSizeClass}` : `text-zinc-900 dark:text-zinc-100 group-hover:text-primary transition-colors ${nameSizeClass}`;
 
   return (
@@ -81,6 +81,16 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
         transition={{ duration: 0.4 }}
         className={`relative rounded-2xl flex items-center gap-3.5 hover:shadow-md transition-all group overflow-hidden border-2 active:scale-98 ${finalFrameClasses} ${paddingClass}`}
       >
+        {/* Terminal Header for Hacker Mode */}
+        {isHacker && (
+          <div className="absolute top-0 left-0 right-0 h-7 bg-zinc-900 flex items-center px-3 gap-1.5 border-b border-zinc-800">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-500/80"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
+            <div className="w-2.5 h-2.5 rounded-full bg-green-500/80"></div>
+            <span className="text-[10px] text-zinc-500 font-mono ml-2 flex-1 text-center pr-8">kaolatex@ubuntu:~</span>
+          </div>
+        )}
+
         {/* Decorative bg shimmer */}
         {!isHacker && <div className="absolute top-0 right-0 w-20 h-20 bg-primary/3 rounded-full translate-x-8 -translate-y-8 group-hover:scale-125 transition-transform" />}
 
@@ -107,7 +117,7 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
         <div className="flex flex-col min-w-0 space-y-0.5">
           <div className="flex items-center gap-1.5 flex-wrap">
             <h5 className={finalNameClasses}>
-              {member.name}
+              {isHacker ? `~/ ${member.name}` : member.name}
             </h5>
             {member.position && (
               <span 
@@ -124,7 +134,7 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
           </div>
 
           {member.department && (
-            <p className={`text-xs font-medium ${isHacker ? 'text-emerald-500/70 font-mono' : 'text-text-secondary'}`}>
+            <p className={`text-xs font-medium ${isHacker ? 'text-zinc-500 font-mono' : 'text-text-secondary'}`}>
               {member.department}
             </p>
           )}
@@ -339,7 +349,7 @@ export default function AboutPage() {
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4">
                           {groupedStaff[categoryType].map((member) => (
                             <StaffCard key={member.id} member={member} />
                           ))}
