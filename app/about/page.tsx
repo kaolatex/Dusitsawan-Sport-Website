@@ -7,7 +7,7 @@ import SectionTitle from '@/components/ui/section-title';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { fetchStaff } from '@/lib/supabase/services';
 import type { Tables } from '@/lib/supabase/database.types';
-import { ShieldCheck, Compass, Heart, Users, User, Crown, Phone, Sparkles, MapPin, Globe, Camera, Share2, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Compass, Heart, Users, User, Crown, Phone, Sparkles, MapPin, Globe, Camera, Share2, ExternalLink, Terminal } from 'lucide-react';
 import CopyContactButton from '@/components/ui/copy-contact-button';
 
 import { CONTACT_INFO } from '@/constants';
@@ -61,6 +61,11 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
   const nameSizeClass     = cardSize === 'lg' ? 'text-base font-extrabold' : cardSize === 'sm' ? 'text-xs font-semibold' : 'text-sm font-bold';
   const paddingClass      = cardSize === 'lg' ? 'p-5' : cardSize === 'sm' ? 'p-3' : 'p-4';
 
+  const isHacker = member.name.includes("ธนาธิป");
+  const finalFrameClasses = isHacker ? 'bg-zinc-950 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.15)]' : frameClasses;
+  const finalAvatarBorder = isHacker ? 'border-emerald-500/50' : avatarBorder;
+  const finalNameClasses  = isHacker ? `text-emerald-400 font-mono tracking-wider ${nameSizeClass}` : `text-zinc-900 dark:text-zinc-100 group-hover:text-primary transition-colors ${nameSizeClass}`;
+
   return (
     <div className="relative">
       {/* Highlight priority badge — outside overflow-hidden so it's never clipped */}
@@ -74,13 +79,13 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4 }}
-        className={`relative rounded-2xl flex items-center gap-3.5 hover:shadow-md transition-all group overflow-hidden border-2 active:scale-98 ${frameClasses} ${paddingClass}`}
+        className={`relative rounded-2xl flex items-center gap-3.5 hover:shadow-md transition-all group overflow-hidden border-2 active:scale-98 ${finalFrameClasses} ${paddingClass}`}
       >
         {/* Decorative bg shimmer */}
-        <div className="absolute top-0 right-0 w-20 h-20 bg-primary/3 rounded-full translate-x-8 -translate-y-8 group-hover:scale-125 transition-transform" />
+        {!isHacker && <div className="absolute top-0 right-0 w-20 h-20 bg-primary/3 rounded-full translate-x-8 -translate-y-8 group-hover:scale-125 transition-transform" />}
 
         {/* Avatar */}
-        <div className={`shrink-0 rounded-full overflow-hidden border-2 ${avatarBorder} ${avatarSize} bg-gradient-to-br from-primary/10 via-primary/5 to-accent-gold/15 flex items-center justify-center shadow-2xs`}>
+        <div className={`shrink-0 rounded-full overflow-hidden border-2 ${finalAvatarBorder} ${avatarSize} ${isHacker ? 'bg-zinc-900' : 'bg-gradient-to-br from-primary/10 via-primary/5 to-accent-gold/15'} flex items-center justify-center shadow-2xs`}>
           {hasAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -101,25 +106,25 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
         {/* Details */}
         <div className="flex flex-col min-w-0 space-y-0.5">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <h5 className={`text-zinc-900 dark:text-zinc-100 group-hover:text-primary transition-colors ${nameSizeClass}`}>
+            <h5 className={finalNameClasses}>
               {member.name}
             </h5>
             {member.position && (
               <span 
                 className={
                   member.name.includes("ธนาธิป") 
-                    ? "inline-flex items-center gap-1 text-[10px] px-3 py-1 rounded-full shrink-0 whitespace-nowrap bg-black text-red-500 font-mono font-bold tracking-widest uppercase border border-red-600 shadow-[0_0_15px_rgba(220,38,38,0.8)] animate-pulse"
+                    ? "inline-flex items-center gap-1.5 text-[10px] sm:text-xs px-3 py-1 rounded border shrink-0 bg-zinc-950 text-emerald-400 font-mono font-semibold tracking-wider uppercase border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)] whitespace-nowrap"
                     : "inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary shrink-0 whitespace-nowrap"
                 }
               >
-                <Crown size={12} />
+                {member.name.includes("ธนาธิป") ? <Terminal size={13} className="text-emerald-500" /> : <Crown size={12} />}
                 {member.position}
               </span>
             )}
           </div>
 
           {member.department && (
-            <p className="text-xs text-text-secondary font-medium">
+            <p className={`text-xs font-medium ${isHacker ? 'text-emerald-500/70 font-mono' : 'text-text-secondary'}`}>
               {member.department}
             </p>
           )}
@@ -128,7 +133,8 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
             <div className="pt-1.5">
               <CopyContactButton 
                 type={member.contact_type === 'ig' || member.contact_info.startsWith('@') || member.contact_info.toLowerCase().includes('ig') ? 'ig' : 'phone'} 
-                value={member.contact_info} 
+                value={member.contact_info}
+                theme={isHacker ? 'hacker' : undefined}
               />
             </div>
           )}
