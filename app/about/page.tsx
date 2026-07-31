@@ -47,7 +47,7 @@ function getAvatarSizeClass(size: CardSize | null): string {
   }
 }
 
-function StaffCard({ member }: { member: Tables<'staff'> }) {
+export function StaffCard({ member }: { member: Tables<'staff'> }) {
   const [imgError, setImgError] = useState(false);
   const hasAvatar = !!member.image_url && !imgError;
 
@@ -142,7 +142,7 @@ function StaffCard({ member }: { member: Tables<'staff'> }) {
           {member.contact_info && (
             <div className="pt-1.5">
               <CopyContactButton 
-                type={member.contact_info.startsWith('@') || member.contact_info.toLowerCase().includes('ig') ? 'ig' : 'phone'} 
+                type={(member as any).contact_type === 'ig' || member.contact_info.startsWith('@') || member.contact_info.toLowerCase().includes('ig') ? 'ig' : 'phone'} 
                 value={member.contact_info}
                 theme={isHacker ? 'hacker' : undefined}
               />

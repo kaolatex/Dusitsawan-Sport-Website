@@ -9,6 +9,7 @@ import LoadingState, { ErrorState } from '@/components/ui/loading-state';
 import { useMatches, useMedals, useNews, useSports, useGallery, useAthletes, useStaff, useCheerMessages, useSiteSettings } from '@/hooks/useData';
 import { Trophy, Calendar, ArrowRight, ArrowUpRight, Newspaper, Image as ImageIcon, Users, MessageSquare, Pin, UserCheck } from 'lucide-react';
 import CountdownSplash, { FloatingCountdownTrigger } from '@/components/ui/countdown-splash';
+import { StaffCard } from '@/app/about/page';
 export default function HomePage() {
   const [isSplashOpen, setIsSplashOpen] = React.useState(false);
   
@@ -402,19 +403,7 @@ export default function HomePage() {
                   )}
 
                   {item.type === 'staff' && (
-                    <div className="bg-surface border border-border/40 rounded-3xl p-5 shadow-xs flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-full overflow-hidden bg-surface shrink-0 border-2 border-primary/20">
-                         {(item.data as any).image_url ? (
-                           <img src={(item.data as any).image_url} alt={(item.data as any).name} className="w-full h-full object-cover" />
-                         ) : (
-                           <UserCheck className="w-6 h-6 m-auto text-primary" />
-                         )}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-text-primary text-sm">{(item.data as any).name}</h4>
-                        <p className="text-xs text-text-secondary">{(item.data as any).position} • {(item.data as any).department}</p>
-                      </div>
-                    </div>
+                    <StaffCard member={item.data as any} />
                   )}
 
                   {item.type === 'cheer' && (

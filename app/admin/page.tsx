@@ -85,6 +85,7 @@ import {
   Sliders,
   Timer,
   BarChart2,
+  PinOff,
 } from 'lucide-react';
 
 type AdminTab =
@@ -683,6 +684,66 @@ export default function AdminPage() {
                       </div>
                       <p className="text-[10px] text-text-secondary">วิดเจ็ตกองเชียร์ / ข้อความกำลังใจ</p>
                     </div>
+                  </div>
+
+                  <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 mb-8 space-y-4">
+                    <h3 className="font-bold text-sm text-text-primary mb-3 flex items-center gap-2 border-b border-primary/20 pb-2">
+                      <Pin size={16} className="text-primary" /> รายการที่กำลังปักหมุดบนหน้าแรก (Currently Pinned)
+                    </h3>
+                    {(() => {
+                      const pinnedItems = [
+                        ...(sports?.filter(s => s.isPinned).map(s => ({ type: 'กีฬา', label: s.name, id: s.id, order: s.pinnedOrder || 0 })) || []),
+                        ...(matches?.filter(m => m.isPinned).map(m => ({ type: 'แมตช์', label: `${m.sportName} (${m.stage})`, id: m.id, order: m.pinnedOrder || 0 })) || []),
+                        ...(news?.filter(n => n.isPinned).map(n => ({ type: 'ข่าว', label: n.title, id: n.id, order: n.pinnedOrder || 0 })) || []),
+                        ...(gallery?.filter(g => g.isPinned).map(g => ({ type: 'แกลเลอรี', label: g.title, id: g.id, order: g.pinnedOrder || 0 })) || []),
+                        ...(athletes?.filter(a => a.is_pinned).map(a => ({ type: 'นักกีฬา', label: a.name, id: a.id, order: a.pinned_order || 0 })) || []),
+                        ...(staffList?.filter(s => s.is_pinned).map(s => ({ type: 'ทีมงาน', label: s.name, id: s.id, order: s.pinned_order || 0 })) || []),
+                        ...(cheerList?.filter(c => c.is_pinned).map(c => ({ type: 'ข้อความ', label: c.message, id: c.id, order: c.pinned_order || 0 })) || []),
+                      ].sort((a, b) => a.order - b.order);
+                      
+                      const mappedItems = pinnedItems.map(item => ({
+                        id: `${item.type}-${item.id}`,
+                        label: `[${item.type}] ${item.label}`,
+                        originalType: item.type,
+                        originalId: item.id,
+                        deleteIcon: <PinOff size={13} />,
+                        deleteTitle: 'ยกเลิกการปักหมุด',
+                        onDelete: () => handleAction(async () => {
+                          switch (item.type) {
+                            case 'กีฬา': await updateSport(item.id, { is_pinned: false }); refetchSports(); break;
+                            case 'แมตช์': await updateMatch(item.id, { is_pinned: false }); refetchMatches(); break;
+                            case 'ข่าว': await updateNews(item.id, { is_pinned: false }); refetchNews(); break;
+                            case 'แกลเลอรี': await updateGallery(item.id, { is_pinned: false }); refetchGallery(); break;
+                            case 'นักกีฬา': await updateAthlete(item.id, { is_pinned: false }); refetchAthletes(); break;
+                            case 'ทีมงาน': await updateStaff(item.id, { is_pinned: false }); refetchStaff(); break;
+                            case 'ข้อความ': await updateCheerWall(item.id, { is_pinned: false }); refetchCheer(); break;
+                          }
+                        })
+                      }));
+
+                      const handleReorderGlobal = async (newItems: any[]) => {
+                        return handleAction(async () => {
+                          await Promise.all(newItems.map((item, index) => {
+                            switch (item.originalType) {
+                              case 'กีฬา': return updateSport(item.originalId, { pinned_order: index });
+                              case 'แมตช์': return updateMatch(item.originalId, { pinned_order: index });
+                              case 'ข่าว': return updateNews(item.originalId, { pinned_order: index });
+                              case 'แกลเลอรี': return updateGallery(item.originalId, { pinned_order: index });
+                              case 'นักกีฬา': return updateAthlete(item.originalId, { pinned_order: index });
+                              case 'ทีมงาน': return updateStaff(item.originalId, { pinned_order: index });
+                              case 'ข้อความ': return updateCheerWall(item.originalId, { pinned_order: index });
+                            }
+                          }));
+                          refetchSports(); refetchMatches(); refetchNews(); refetchGallery(); refetchAthletes(); refetchStaff(); refetchCheer();
+                        }, 'บันทึกลำดับการปักหมุดบนหน้าแรกสำเร็จ');
+                      };
+                      
+                      return (
+                        <div className="mt-2">
+                           <ItemList items={mappedItems} onReorder={handleReorderGlobal} />
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <h3 className="font-bold text-sm text-text-primary mb-3 flex items-center gap-2 border-b border-border/30 pb-2">
@@ -1964,7 +2025,7 @@ function ItemRow({
   isLast,
   onMove,
 }: {
-  item: { id: string; label: string; onEdit: () => void; onDelete: () => void };
+  item: { id: string; label: string; onEdit?: () => void; onDelete?: () => void; deleteIcon?: React.ReactNode; deleteTitle?: string };
   index: number;
   isFirst: boolean;
   isLast: boolean;
@@ -2014,21 +2075,25 @@ function ItemRow({
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={item.onEdit}
-          className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white font-bold text-[11px] transition-all cursor-pointer"
-        >
-          แก้ไข
-        </button>
-        <button
-          type="button"
-          onClick={item.onDelete}
-          className="p-1.5 text-text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-          title="ลบรายการ"
-        >
-          <Trash2 size={13} />
-        </button>
+        {item.onEdit && (
+          <button
+            type="button"
+            onClick={item.onEdit}
+            className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white font-bold text-[11px] transition-all cursor-pointer"
+          >
+            แก้ไข
+          </button>
+        )}
+        {item.onDelete && (
+          <button
+            type="button"
+            onClick={item.onDelete}
+            className="p-1.5 text-text-secondary hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+            title={item.deleteTitle || "ลบรายการ"}
+          >
+            {item.deleteIcon || <Trash2 size={13} />}
+          </button>
+        )}
       </div>
     </Reorder.Item>
   );
@@ -2038,19 +2103,27 @@ function ItemList({
   items,
   onReorder,
 }: {
-  items: { id: string; label: string; onEdit: () => void; onDelete: () => void }[];
-  onReorder?: (newItems: { id: string; label: string; onEdit: () => void; onDelete: () => void }[]) => void;
+  items: { id: string; label: string; onEdit?: () => void; onDelete?: () => void; deleteIcon?: React.ReactNode; deleteTitle?: string; [key: string]: any }[];
+  onReorder?: (newItems: any[]) => void;
 }) {
   const [list, setList] = useState(items);
+  const [isReordering, setIsReordering] = useState(false);
 
   useEffect(() => {
-    setList(items);
-  }, [items]);
+    if (!isReordering) {
+      setList(items);
+    }
+  }, [items, isReordering]);
 
-  const handleReorder = (newList: typeof items) => {
+  const handleReorder = async (newList: typeof items) => {
     setList(newList);
     if (onReorder) {
-      onReorder(newList);
+      setIsReordering(true);
+      try {
+        await onReorder(newList);
+      } finally {
+        setIsReordering(false);
+      }
     }
   };
 
