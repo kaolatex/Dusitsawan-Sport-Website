@@ -189,7 +189,7 @@ export async function updateSubcategoriesOrder(updates: { id: string; sort_order
 
 export async function upsertMatch(payload: TablesInsert<'matches'>) {
   const supabase = getSupabase();
-  const { error } = await supabase.from('matches').insert(payload).select();
+  const { error } = await supabase.from('matches').upsert(payload).select();
   if (error) handleDbError(error);
 }
 
@@ -207,7 +207,7 @@ export async function deleteMatch(id: string) {
 
 export async function upsertNews(payload: TablesInsert<'news'>) {
   const supabase = getSupabase();
-  const { error } = await supabase.from('news').insert(payload);
+  const { error } = await supabase.from('news').upsert(payload);
   if (error) handleDbError(error);
 }
 
@@ -225,7 +225,7 @@ export async function deleteNews(id: string) {
 
 export async function upsertGallery(payload: TablesInsert<'gallery'>) {
   const supabase = getSupabase();
-  const { error } = await supabase.from('gallery').insert(payload);
+  const { error } = await supabase.from('gallery').upsert(payload);
   if (error) handleDbError(error);
 }
 
