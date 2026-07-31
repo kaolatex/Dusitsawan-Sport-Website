@@ -34,7 +34,7 @@ export default function NewsPage() {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'sports': return 'bg-primary/10 text-primary';
-      case 'announcement': return 'bg-accent-gold/10 text-accent-gold';
+      case 'announcement': return 'bg-amber-500/10 text-amber-700';
       case 'activity': return 'bg-blue-600/10 text-blue-600';
       default: return 'bg-surface text-text-secondary';
     }
@@ -66,7 +66,7 @@ export default function NewsPage() {
                 setFilter(btn.id as typeof filter);
                 setSelectedNewsId(null);
               }}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center ${
+              className={`px-5 py-2.5 rounded-full text-sm font-semibold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center active:scale-95 ${
                 filter === btn.id
                   ? 'bg-primary border-primary text-white shadow-xs'
                   : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'
@@ -98,8 +98,8 @@ export default function NewsPage() {
                   />
                 )}
                 <div className="p-5 flex flex-col flex-grow gap-3">
-                  <div className="flex items-center justify-between text-[10px] font-semibold">
-                    <span className={`px-2 py-0.5 rounded-full ${getCategoryColor(item.category)}`}>
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className={`px-3 py-1 rounded-full ${getCategoryColor(item.category)}`}>
                       {getCategoryLabel(item.category)}
                     </span>
                     <span className="text-text-secondary flex items-center gap-1">
@@ -107,13 +107,13 @@ export default function NewsPage() {
                       {item.date}
                     </span>
                   </div>
-                  <h3 className="font-bold text-text-primary text-sm group-hover:text-primary transition-colors line-clamp-2">
+                  <h3 className="font-bold text-text-primary text-base group-hover:text-primary transition-colors line-clamp-2">
                     {item.title}
                   </h3>
-                  <p className="text-text-secondary text-xs leading-relaxed line-clamp-3">
+                  <p className="text-text-secondary text-sm leading-relaxed line-clamp-3">
                     {item.excerpt}
                   </p>
-                  <div className="mt-auto pt-2 text-[11px] font-semibold text-primary group-hover:underline">
+                  <div className="mt-auto pt-2 text-xs font-bold text-primary group-hover:underline">
                     อ่านเพิ่มเติม...
                   </div>
                 </div>
@@ -135,12 +135,12 @@ export default function NewsPage() {
             >
               {/* Sticky Top Header */}
               <div className="px-6 py-4 flex items-center justify-between border-b border-border/30 bg-surface-card shrink-0 z-10">
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${getCategoryColor(activeNews.category)}`}>
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getCategoryColor(activeNews.category)}`}>
                   {getCategoryLabel(activeNews.category)}
                 </span>
                 <button
                   onClick={() => setSelectedNewsId(null)}
-                  className="px-3 py-1 rounded-full bg-surface text-text-secondary hover:text-text-primary hover:bg-border/40 text-xs transition-colors cursor-pointer flex items-center gap-1 border border-border/30"
+                  className="px-4 py-2 rounded-full bg-surface text-text-secondary hover:text-text-primary hover:bg-border/40 text-sm transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 border border-border/30"
                 >
                   <X size={13} />
                   <span>ปิดหน้าต่าง</span>
@@ -153,8 +153,8 @@ export default function NewsPage() {
                   {activeNews.title}
                 </h2>
 
-                <div className="flex items-center gap-3 text-xs text-text-secondary border-b border-border/40 pb-4">
-                  <span className="flex items-center gap-1"><Calendar size={13} /> {activeNews.date}</span>
+                <div className="flex items-center gap-3 text-sm text-text-secondary border-b border-border/40 pb-4">
+                  <span className="flex items-center gap-1.5"><Calendar size={15} /> {activeNews.date}</span>
                   <span>•</span>
                   <span>ฝ่ายสื่อสารมวลชน คณะ 2</span>
                 </div>
@@ -170,7 +170,7 @@ export default function NewsPage() {
                   </div>
                 )}
 
-                <div className="text-xs md:text-sm text-text-secondary leading-relaxed space-y-4">
+                <div className="text-sm md:text-base text-text-secondary leading-relaxed space-y-4">
                   {activeNews.content.split('\n').map((para: string, i: number) => (
                     <p key={i}>{para}</p>
                   ))}

@@ -47,7 +47,7 @@ export default function GalleryPage() {
           <div className="flex p-1 bg-surface-card border border-border/40 rounded-full shadow-sm max-w-sm w-full">
             <button
               onClick={() => setActiveTab('community')}
-              className={`flex-1 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-3 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 active:scale-95 ${
                 activeTab === 'community'
                   ? 'bg-primary text-white shadow-md'
                   : 'text-text-secondary hover:text-text-primary'
@@ -57,7 +57,7 @@ export default function GalleryPage() {
             </button>
             <button
               onClick={() => setActiveTab('official')}
-              className={`flex-1 py-2.5 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-3 rounded-full text-sm font-semibold transition-all flex items-center justify-center gap-2 active:scale-95 ${
                 activeTab === 'official'
                   ? 'bg-primary text-white shadow-md'
                   : 'text-text-secondary hover:text-text-primary'
@@ -78,7 +78,7 @@ export default function GalleryPage() {
                     setActiveFilter(filter);
                     setSelectedImage(null);
                   }}
-                  className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border cursor-pointer ${
+                  className={`px-5 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all border cursor-pointer active:scale-95 ${
                     activeFilter === filter
                       ? 'bg-primary border-primary text-white shadow-xs'
                       : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'
@@ -109,13 +109,13 @@ export default function GalleryPage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-5 text-white">
                       {img.sportName && (
-                        <span className="text-[10px] bg-primary px-2 py-0.5 rounded-full w-max mb-2 font-semibold">
+                        <span className="text-xs bg-primary px-3 py-1 rounded-full w-max mb-2 font-semibold">
                           {img.sportName}
                         </span>
                       )}
-                      <h4 className="font-bold text-xs leading-snug">{img.title}</h4>
-                      <div className="flex items-center gap-1 text-[9px] text-slate-300 mt-1">
-                        <Calendar size={10} />
+                      <h4 className="font-bold text-sm leading-snug">{img.title}</h4>
+                      <div className="flex items-center gap-1 text-xs text-white/80 mt-1">
+                        <Calendar size={12} />
                         <span>{img.date}</span>
                       </div>
                       <ZoomIn size={16} className="absolute top-4 right-4 text-white/80" />
@@ -156,12 +156,12 @@ export default function GalleryPage() {
                 />
                 <div className="text-center text-white/90">
                   {currentImage.sportName && (
-                    <span className="text-[10px] bg-primary px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider">
+                    <span className="text-xs bg-primary px-3 py-1 rounded-full font-semibold uppercase tracking-wider">
                       {currentImage.sportName}
                     </span>
                   )}
-                  <h3 className="font-bold text-sm mt-2">{currentImage.title}</h3>
-                  <p className="text-[10px] text-white/50 mt-1">{currentImage.date}</p>
+                  <h3 className="font-bold text-base mt-2">{currentImage.title}</h3>
+                  <p className="text-xs text-white/80 mt-1">{currentImage.date}</p>
                 </div>
               </motion.div>
             </div>

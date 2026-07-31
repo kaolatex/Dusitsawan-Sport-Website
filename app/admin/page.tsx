@@ -420,6 +420,7 @@ export default function AdminPage() {
     name: '',
     position: '',
     department: '',
+    contact_type: 'phone' as 'ig' | 'phone',
     contact_info: '',
     type: 'Head',
     display_order: 0,
@@ -1367,6 +1368,7 @@ export default function AdminPage() {
                           name: staffForm.name,
                           position: staffForm.position || null,
                           department: staffForm.department || null,
+                          contact_type: staffForm.contact_type || 'phone',
                           contact_info: staffForm.contact_info || null,
                           type: staffForm.type || null,
                           display_order: Number(staffForm.display_order) || 0,
@@ -1375,7 +1377,7 @@ export default function AdminPage() {
                           card_size: staffForm.card_size,
                           highlight_priority: staffForm.highlight_priority,
                         });
-                        setStaffForm({ id: '', name: '', position: '', department: '', contact_info: '', type: 'Head', display_order: 0, image_url: '', frame_style: 'normal', card_size: 'md', highlight_priority: false });
+                        setStaffForm({ id: '', name: '', position: '', department: '', contact_type: 'phone', contact_info: '', type: 'Head', display_order: 0, image_url: '', frame_style: 'normal', card_size: 'md', highlight_priority: false });
                         refetchStaff();
                       });
                     }}
@@ -1386,7 +1388,24 @@ export default function AdminPage() {
                       <FormField label="ตำแหน่ง"><input className={inputClass} value={staffForm.position} onChange={e => setStaffForm(f => ({ ...f, position: e.target.value }))} /></FormField>
                       <FormField label="ฝ่าย / สังกัด"><input className={inputClass} value={staffForm.department} onChange={e => setStaffForm(f => ({ ...f, department: e.target.value }))} /></FormField>
                       <FormField label="หมวดหมู่ / ประเภท (เช่น Head, Staff)"><input className={inputClass} value={staffForm.type} onChange={e => setStaffForm(f => ({ ...f, type: e.target.value }))} /></FormField>
-                      <FormField label="ช่องทางติดต่อ"><input className={inputClass} value={staffForm.contact_info} onChange={e => setStaffForm(f => ({ ...f, contact_info: e.target.value }))} /></FormField>
+                      <FormField label="ช่องทางติดต่อ">
+                        <div className="flex gap-2">
+                          <select
+                            className={`${inputClass} !w-24 shrink-0`}
+                            value={staffForm.contact_type}
+                            onChange={e => setStaffForm(f => ({ ...f, contact_type: e.target.value as 'ig' | 'phone' }))}
+                          >
+                            <option value="phone">📞 เบอร์</option>
+                            <option value="ig">📸 IG</option>
+                          </select>
+                          <input 
+                            className={`${inputClass} flex-1`} 
+                            value={staffForm.contact_info} 
+                            placeholder={staffForm.contact_type === 'ig' ? 'เช่น _feixsuzy' : 'เช่น 089xxxxxxx'}
+                            onChange={e => setStaffForm(f => ({ ...f, contact_info: e.target.value }))} 
+                          />
+                        </div>
+                      </FormField>
                       <ImageUploadField label="รูปโปรไฟล์" value={staffForm.image_url} onChange={url => setStaffForm(f => ({ ...f, image_url: url }))} bucket="staff-images" folder="staff" />
                     </div>
 
@@ -1523,7 +1542,7 @@ export default function AdminPage() {
                   items={(staffList ?? []).map(s => ({
                     id: s.id,
                     label: `[${s.type || 'ทั่วไป'}] ${s.name}${s.position ? ` — ${s.position}` : ''}`,
-                    onEdit: () => setStaffForm({ id: s.id, name: s.name, position: s.position ?? '', department: s.department ?? '', contact_info: s.contact_info ?? '', type: s.type ?? '', display_order: s.display_order ?? 0, image_url: s.image_url ?? '', frame_style: (s.frame_style as any) ?? 'normal', card_size: (s.card_size as any) ?? 'md', highlight_priority: s.highlight_priority ?? false }),
+                    onEdit: () => setStaffForm({ id: s.id, name: s.name, position: s.position ?? '', department: s.department ?? '', contact_type: (s.contact_type as any) ?? 'phone', contact_info: s.contact_info ?? '', type: s.type ?? '', display_order: s.display_order ?? 0, image_url: s.image_url ?? '', frame_style: (s.frame_style as any) ?? 'normal', card_size: (s.card_size as any) ?? 'md', highlight_priority: s.highlight_priority ?? false }),
                     onDelete: () => handleAction(async () => { await deleteStaff(s.id); refetchStaff(); })
                   }))}
                   onReorder={(newItems) => handleAction(async () => {

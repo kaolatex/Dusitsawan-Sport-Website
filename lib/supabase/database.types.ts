@@ -303,6 +303,7 @@ export interface Database {
           frame_style: 'gold-glow' | 'pink-gradient' | 'silver' | 'normal' | null;
           card_size: 'lg' | 'md' | 'sm' | null;
           highlight_priority: boolean;
+          contact_type: 'ig' | 'phone' | null;
           created_at: string;
         };
         Insert: {
@@ -319,6 +320,7 @@ export interface Database {
           frame_style?: 'gold-glow' | 'pink-gradient' | 'silver' | 'normal' | null;
           card_size?: 'lg' | 'md' | 'sm' | null;
           highlight_priority?: boolean;
+          contact_type?: 'ig' | 'phone' | null;
           created_at?: string;
         };
         Update: {
@@ -335,6 +337,7 @@ export interface Database {
           frame_style?: 'gold-glow' | 'pink-gradient' | 'silver' | 'normal' | null;
           card_size?: 'lg' | 'md' | 'sm' | null;
           highlight_priority?: boolean;
+          contact_type?: 'ig' | 'phone' | null;
           created_at?: string;
         };
         Relationships: [];
