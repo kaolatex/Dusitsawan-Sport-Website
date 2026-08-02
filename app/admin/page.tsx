@@ -481,9 +481,21 @@ export default function AdminPage() {
     );
   }
 
-  if (!isAuthenticated) {
-    return <AdminLoginModal onSignIn={signIn} />;
+    if (!isAuthenticated) {
+    return (
+      <>
+        {/* ปุ่ม X (ตัวอักษร) สำหรับกดกลับไปหน้าแรก */}
+        <Link 
+          href="/" 
+          className="fixed top-4 right-4 z-[9999] flex items-center justify-center w-10 h-10 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-full text-slate-500 dark:text-zinc-400 hover:text-rose-500 shadow-md transition-all active:scale-95 font-bold text-lg leading-none"
+        >
+          X
+        </Link>
+        <AdminLoginModal onSignIn={signIn} />
+      </>
+    );
   }
+
 
   return (
     <Container className="py-12 md:py-20">
