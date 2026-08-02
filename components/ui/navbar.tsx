@@ -84,7 +84,7 @@ export default function Navbar() {
                 width={80}
                 height={80}
                 priority
-                className="h-8 sm:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105 shrink-0"
+                className="h-11 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 shrink-0"
               />
               <div className="flex flex-col whitespace-nowrap">
                 <span className="text-base font-bold tracking-wide bg-gradient-to-r from-zinc-900 via-zinc-900 to-primary dark:from-white dark:via-white dark:to-primary bg-clip-text text-transparent leading-tight">
@@ -129,16 +129,23 @@ export default function Navbar() {
             {/* Admin / CTA Button (Desktop) */}
             <div className="hidden md:flex items-center gap-3">
               <ThemeToggle />
-              <Link
-                href="/admin"
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border ${pathname === '/admin'
-                    ? 'bg-primary border-primary text-white shadow-xs'
-                    : 'bg-surface-card border-border hover:border-primary/20 text-text-primary'
-                  }`}
-              >
-                <Lock size={12} className={pathname === '/admin' ? 'text-white' : 'text-primary'} />
-                จัดการข้อมูล
-              </Link>
+              {pathname === '/admin' ? (
+                <Link
+                  href="/"
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border bg-rose-500 hover:bg-rose-600 border-rose-500 text-white shadow-xs cursor-pointer active:scale-95"
+                >
+                  <X size={14} />
+                  ปิด Admin Panel
+                </Link>
+              ) : (
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border bg-surface-card border-border hover:border-primary/20 text-text-primary"
+                >
+                  <Lock size={12} className="text-primary" />
+                  จัดการข้อมูล
+                </Link>
+              )}
             </div>
 
             {/* Mobile Menu & Theme Button */}
@@ -176,10 +183,25 @@ export default function Navbar() {
                 const isActive = pathname === item.href;
                 const isAdmin = item.href === '/admin';
 
+                if (isAdmin && pathname === '/admin') {
+                  return (
+                    <Link
+                      key="close-admin"
+                      href="/"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center justify-between px-4 py-3 rounded-xl text-base font-semibold border border-rose-500/30 text-rose-500 mt-2 bg-rose-500/10"
+                    >
+                      <span>ปิด Admin Panel</span>
+                      <X size={16} />
+                    </Link>
+                  );
+                }
+
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => setIsOpen(false)}
                     className={`flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-colors ${isActive
                         ? 'bg-primary/5 text-primary font-semibold'
                         : isAdmin

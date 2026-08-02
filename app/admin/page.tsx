@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { motion, Reorder, useDragControls } from 'framer-motion';
 import Container from '@/components/ui/container';
 import LoadingState from '@/components/ui/loading-state';
@@ -541,6 +542,13 @@ export default function AdminPage() {
               <Database size={12} className="text-primary" />
               Supabase Connected
             </span>
+            <Link
+              href="/"
+              className="flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-500 border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-all cursor-pointer shadow-2xs active:scale-95"
+            >
+              <X size={12} />
+              ปิด Admin Panel
+            </Link>
             <button
               onClick={() => signOut()}
               className="flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-semibold border border-border/40 hover:border-red-200 hover:text-red-500 transition-colors cursor-pointer shadow-2xs active:scale-95"

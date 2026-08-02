@@ -67,7 +67,7 @@ export function StaffCard({ member }: { member: Tables<'staff'> }) {
   const finalNameClasses  = isHacker ? `text-emerald-400 font-mono tracking-wider ${nameSizeClass}` : `text-zinc-900 dark:text-zinc-100 group-hover:text-primary transition-colors ${nameSizeClass}`;
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       {/* Highlight priority badge — outside overflow-hidden so it's never clipped */}
       {isHighlight && (
         <span className="absolute -top-2 -right-2 z-20 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-md leading-tight">
@@ -79,7 +79,7 @@ export function StaffCard({ member }: { member: Tables<'staff'> }) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.4 }}
-        className={`relative rounded-2xl flex items-center gap-3.5 hover:shadow-md transition-all group overflow-hidden border-2 active:scale-98 ${finalFrameClasses} ${paddingClass}`}
+        className={`relative h-full rounded-2xl flex items-center gap-3.5 hover:shadow-md transition-all group overflow-hidden border-2 active:scale-98 ${finalFrameClasses} ${paddingClass}`}
       >
         {/* Terminal Header for Hacker Mode */}
         {isHacker && (
@@ -242,16 +242,6 @@ export default function AboutPage() {
             คณะผู้จัดทำ & ทีมงาน
           </button>
           <button
-            onClick={() => setActiveTab('about')}
-            className={`px-6 py-3 rounded-full text-sm font-bold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center active:scale-95 ${
-              activeTab === 'about'
-                ? 'bg-primary border-primary text-white shadow-xs'
-                : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            สัญลักษณ์ & อัตลักษณ์
-          </button>
-          <button
             onClick={() => setActiveTab('contact')}
             className={`px-6 py-3 rounded-full text-sm font-bold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center active:scale-95 ${
               activeTab === 'contact'
@@ -260,6 +250,16 @@ export default function AboutPage() {
             }`}
           >
             ติดต่อเรา
+          </button>
+          <button
+            onClick={() => setActiveTab('about')}
+            className={`px-6 py-3 rounded-full text-sm font-bold tracking-wide transition-all border cursor-pointer whitespace-nowrap shrink-0 snap-center active:scale-95 ${
+              activeTab === 'about'
+                ? 'bg-primary border-primary text-white shadow-xs'
+                : 'bg-surface-card border-border/40 hover:border-primary/20 text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            สัญลักษณ์ & อัตลักษณ์
           </button>
         </div>
 
