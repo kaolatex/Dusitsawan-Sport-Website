@@ -17,17 +17,7 @@ export default function PreLaunchWrapper({ children }: PreLaunchWrapperProps) {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
-  const [timeLeft, setTimeLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(() => {
-    const now = new Date().getTime();
-    const distance = TARGET_DATE - now;
-    if (distance <= 0) return null;
-    return {
-      d: Math.floor(distance / (1000 * 60 * 60 * 24)),
-      h: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-      m: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-      s: Math.floor((distance % (1000 * 60)) / 1000),
-    };
-  });
+  const [timeLeft, setTimeLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
 
   // 1. Check Supabase session & Emergency Switch (site_settings) for bypass
   useEffect(() => {
@@ -74,16 +64,16 @@ export default function PreLaunchWrapper({ children }: PreLaunchWrapperProps) {
   useEffect(() => {
     if (isUnlocked || isFadingOut) return;
 
-    const interval = setInterval(() => {
+    const runTimer = () => {
       const now = new Date().getTime();
       const distance = TARGET_DATE - now;
 
       if (distance <= 0) {
-        clearInterval(interval);
         if (typeof window !== 'undefined') {
           localStorage.setItem('dusit_unlocked', 'true');
         }
         handleEpicReveal();
+        return false;
       } else {
         setTimeLeft({
           d: Math.floor(distance / (1000 * 60 * 60 * 24)),
@@ -91,6 +81,15 @@ export default function PreLaunchWrapper({ children }: PreLaunchWrapperProps) {
           m: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
           s: Math.floor((distance % (1000 * 60)) / 1000),
         });
+        return true;
+      }
+    };
+
+    if (!runTimer()) return;
+
+    const interval = setInterval(() => {
+      if (!runTimer()) {
+        clearInterval(interval);
       }
     }, 1000);
 
