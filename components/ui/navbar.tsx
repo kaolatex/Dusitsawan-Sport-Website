@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Lock } from 'lucide-react';
@@ -77,14 +78,19 @@ export default function Navbar() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href="/" onClick={handleLogoTap} className="flex items-center gap-2.5 group">
-              <span className="w-8 h-8 shrink-0 rounded-full bg-gradient-to-tr from-primary to-primary-soft flex items-center justify-center text-white font-bold text-sm shadow-xs group-hover:scale-105 transition-transform">
-                ดส
-              </span>
+              <Image
+                src="/logo.png"
+                alt="Dusitsawan Logo"
+                width={80}
+                height={80}
+                priority
+                className="h-8 sm:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105 shrink-0"
+              />
               <div className="flex flex-col whitespace-nowrap">
                 <span className="text-base font-bold tracking-wide bg-gradient-to-r from-zinc-900 via-zinc-900 to-primary dark:from-white dark:via-white dark:to-primary bg-clip-text text-transparent leading-tight">
                   ดุสิตสวรรค์ธัญมหาปราสาท
                 </span>
-                <span className="text-[9px] tracking-wider text-zinc-500 dark:text-zinc-400 uppercase mt-0.5 group-hover:text-primary transition-colors">
+                <span className="text-[9px] tracking-wider text-zinc-500 dark:text-zinc-400 uppercase mt-0.5 group-hover:text-primary transition-colors font-semibold">
                   Dusitsawan Tunyamahaprasat
                 </span>
               </div>

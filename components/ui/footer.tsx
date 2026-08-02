@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Container from './container';
 import VisitorCounter from './visitor-counter';
 import { NAV_ITEMS } from '@/constants';
@@ -17,13 +18,22 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-6 mb-12">
           {/* Brand Column */}
           <div className="md:col-span-2 flex flex-col gap-4">
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs shadow-xs">
-                ดส
-              </span>
-              <span className="text-base font-bold text-gradient-primary">
-                ดุสิตสวรรค์ธัญมหาปราสาท
-              </span>
+            <Link href="/" className="flex items-center gap-3 w-fit group">
+              <Image
+                src="/logo.png"
+                alt="Dusitsawan Logo"
+                width={120}
+                height={120}
+                className="h-10 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 shrink-0"
+              />
+              <div className="flex flex-col">
+                <span className="text-base font-bold text-gradient-primary">
+                  ดุสิตสวรรค์ธัญมหาปราสาท
+                </span>
+                <span className="text-[10px] tracking-widest text-text-secondary uppercase font-medium">
+                  Dusitsawan Tunyamahaprasat
+                </span>
+              </div>
             </Link>
             <p className="text-text-secondary text-xs max-w-sm leading-relaxed">
               ระบบบริหารจัดการข้อมูลและตารางการแข่งขันกีฬาสี คณะ 2 สีชมพู (ดุสิตสวรรค์) 

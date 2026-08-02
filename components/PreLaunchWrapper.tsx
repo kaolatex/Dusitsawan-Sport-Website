@@ -10,24 +10,64 @@ interface PreLaunchWrapperProps {
   children: React.ReactNode;
 }
 
-// STRICT Target Date: August 3, 2026, 06:00:00 (Asia/Bangkok)
-const TARGET_DATE = new Date('2026-08-03T06:00:00+07:00').getTime();
+// STRICT Target Date: August 3, 2026, 07:00:00 (Asia/Bangkok)
+const TARGET_DATE = new Date('2026-08-03T07:00:00+07:00').getTime();
 
 export default function PreLaunchWrapper({ children }: PreLaunchWrapperProps) {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
-  const [timeLeft, setTimeLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(null);
+  const [timeLeft, setTimeLeft] = useState<{ d: number; h: number; m: number; s: number } | null>(() => {
+    const now = new Date().getTime();
+    const distance = TARGET_DATE - now;
+    if (distance <= 0) return null;
+    return {
+      d: Math.floor(distance / (1000 * 60 * 60 * 24)),
+      h: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      m: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+      s: Math.floor((distance % (1000 * 60)) / 1000),
+    };
+  });
 
-  // 1. Check Supabase session on mount for bypass
+  // 1. Check Supabase session & Emergency Switch (site_settings) for bypass
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await getSupabase().auth.getSession();
-      if (session) {
-        setIsUnlocked(true);
+    // Check local storage bypass first
+    if (typeof window !== 'undefined' && localStorage.getItem('dusit_unlocked') === 'true') {
+      setIsUnlocked(true);
+      return;
+    }
+
+    const checkStatus = async () => {
+      try {
+        // Check admin session
+        const { data: { session } } = await getSupabase().auth.getSession();
+        if (session) {
+          setIsUnlocked(true);
+          return;
+        }
+
+        // Check emergency switch in site_settings
+        const { data: settings } = await getSupabase()
+          .from('site_settings')
+          .select('is_countdown_active')
+          .limit(1)
+          .maybeSingle();
+
+        if (settings && settings.is_countdown_active === false) {
+          setIsUnlocked(true);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('dusit_unlocked', 'true');
+          }
+        }
+      } catch (err) {
+        console.error('Failed checking prelaunch status:', err);
       }
     };
-    checkSession();
+    checkStatus();
+
+    // Poll site_settings every 5 seconds so if admin clicks "REJECT", site unlocks instantly!
+    const statusInterval = setInterval(checkStatus, 5000);
+    return () => clearInterval(statusInterval);
   }, []);
 
   // 2. Countdown Logic
@@ -40,6 +80,9 @@ export default function PreLaunchWrapper({ children }: PreLaunchWrapperProps) {
 
       if (distance <= 0) {
         clearInterval(interval);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('dusit_unlocked', 'true');
+        }
         handleEpicReveal();
       } else {
         setTimeLeft({

@@ -496,7 +496,47 @@ export default function AdminPage() {
               แผงควบคุมระบบหลังบ้าน
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* ==================================================================================== */}
+            {/* 🗑️ [ถอดออกได้หลังเปิดเว็บ] START: ปุ่มเล็ก REJECT เค้าท์ดาวน์สีแดง */}
+            {/* ==================================================================================== */}
+            <button
+              onClick={() => {
+                const nextVal = !settingsForm.is_countdown_active;
+                setSettingsForm(f => ({ ...f, is_countdown_active: nextVal }));
+                handleAction(async () => {
+                  await upsertSiteSettings({ ...settingsForm, is_countdown_active: nextVal });
+                  refetchSettings();
+                  if (!nextVal) {
+                    alert('🚨 REJECT SUCCESS: ปิดระบบนับถอยหลัง สั่งปลดล็อกเว็บไซต์ให้ทุกคนเข้าใช้ทันทีเรียบร้อย!');
+                  } else {
+                    alert('🔒 เปิดระบบเคาท์ดาวน์ล็อกหน้าเว็บกลับคืนแล้ว');
+                  }
+                });
+              }}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shadow-2xs active:scale-95 border ${
+                settingsForm.is_countdown_active
+                  ? 'bg-red-500/10 text-red-600 border-red-500/40 hover:bg-red-500 hover:text-white dark:text-red-400'
+                  : 'bg-green-500/10 text-green-600 border-green-500/40 hover:bg-green-600 hover:text-white dark:text-green-400'
+              }`}
+              title={settingsForm.is_countdown_active ? 'กดเพื่อปิดเคาท์ดาวน์ / สั่งเปิดเว็บทันที' : 'กดเพื่อกลับไปหน้าเคาท์ดาวน์'}
+            >
+              {settingsForm.is_countdown_active ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                  REJECT เคาท์ดาวน์ (เปิดเว็บด่วน)
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  เว็บเปิดแล้ว (ปิดเคาท์ดาวน์อยู่)
+                </>
+              )}
+            </button>
+            {/* ==================================================================================== */}
+            {/* 🗑️ [ถอดออกได้หลังเปิดเว็บ] END: ปุ่มเล็ก REJECT เค้าท์ดาวน์สีแดง */}
+            {/* ==================================================================================== */}
+
             <span className="text-xs text-text-secondary flex items-center gap-1.5 px-3.5 py-1.5 bg-surface border border-border/30 rounded-full font-medium shadow-2xs">
               <Database size={12} className="text-primary" />
               Supabase Connected
