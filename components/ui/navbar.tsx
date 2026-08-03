@@ -42,11 +42,6 @@ export default function Navbar() {
   }, [pathname]);
 
   const handleLogoTap = (e: React.MouseEvent) => {
-    // Only intercept if we are actively tapping, otherwise let Link work naturally
-    // Actually, we should preventDefault if we are tapping fast, but for simplicity, 
-    // let's just let the link work but also count taps.
-    // If they click 10 times, they might navigate to "/" multiple times which is fine.
-    // Wait, better to prevent default to avoid reloading the page while trying to trigger the easter egg.
     e.preventDefault();
     setTapCount(prev => prev + 1);
 
@@ -60,7 +55,6 @@ export default function Navbar() {
       setIsPasscodeModalOpen(true);
       setTapCount(0);
       if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
-      // Haptic feedback if available
       if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
         window.navigator.vibrate(50);
       }
@@ -79,25 +73,18 @@ export default function Navbar() {
             {/* Logo */}
             <Link href="/" onClick={handleLogoTap} className="flex items-center gap-2.5 group">
               <Image
-                src="/logo.png"
+                src="/logo.png" // เปลี่ยน path ของ logo เป็นอันที่มีตัวหนังสือด้วย
                 alt="Dusitsawan Logo"
-                width={80}
+                width={200} // ขยายความกว้างขึ้นเผื่อเป็นแนวนอน
                 height={80}
                 priority
-                className="h-11 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 shrink-0"
+                className="h-10 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 shrink-0"
               />
-              <div className="flex flex-col whitespace-nowrap">
-                <span className="text-base font-bold tracking-wide bg-gradient-to-r from-zinc-900 via-zinc-900 to-primary dark:from-white dark:via-white dark:to-primary bg-clip-text text-transparent leading-tight">
-                  ดุสิตสวรรค์ธัญมหาปราสาท
-                </span>
-                <span className="text-[9px] tracking-wider text-zinc-500 dark:text-zinc-400 uppercase mt-0.5 group-hover:text-primary transition-colors font-semibold">
-                  Dusitsawan Tunyamahaprasat
-                </span>
-              </div>
+              {/* ลบ <div> ที่มีตัวหนังสือออกไปหมดแล้ว! */}
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-1 overflow-x-auto whitespace-nowrap">
               {NAV_ITEMS.map((item) => {
                 const isActive = pathname === item.href;
                 const isAdmin = item.href === '/admin';
@@ -108,7 +95,7 @@ export default function Navbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors relative ${isActive
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors relative shrink-0 ${isActive
                         ? 'text-primary dark:text-pink-400'
                         : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
                       }`}
@@ -127,7 +114,7 @@ export default function Navbar() {
             </nav>
 
             {/* Admin / CTA Button (Desktop) */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-3 shrink-0">
               <ThemeToggle />
               {pathname === '/admin' ? (
                 <Link
