@@ -73,14 +73,21 @@ export default function Navbar() {
             {/* Logo */}
             <Link href="/" onClick={handleLogoTap} className="flex items-center gap-2.5 group">
               <Image
-                src="/logo.png" // เปลี่ยน path ของ logo เป็นอันที่มีตัวหนังสือด้วย
+                src="/logo.png"
                 alt="Dusitsawan Logo"
-                width={200} // ขยายความกว้างขึ้นเผื่อเป็นแนวนอน
+                width={80}
                 height={80}
                 priority
-                className="h-10 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 shrink-0"
+                className="h-11 sm:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 shrink-0"
               />
-              {/* ลบ <div> ที่มีตัวหนังสือออกไปหมดแล้ว! */}
+              <div className="flex flex-col whitespace-nowrap">
+                <span className="text-base font-bold tracking-wide bg-gradient-to-r from-zinc-900 via-zinc-900 to-primary dark:from-white dark:via-white dark:to-primary bg-clip-text text-transparent leading-tight">
+                  ดุสิตสวรรค์ธัญมหาปราสาท
+                </span>
+                <span className="text-[9px] tracking-wider text-zinc-500 dark:text-zinc-400 uppercase mt-0.5 group-hover:text-primary transition-colors font-semibold">
+                  Dusitsawan Tunyamahaprasat
+                </span>
+              </div>
             </Link>
 
             {/* Desktop Navigation */}
