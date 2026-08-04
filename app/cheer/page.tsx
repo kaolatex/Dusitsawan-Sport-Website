@@ -118,12 +118,12 @@ export default function CheerPage() {
   };
 
   return (
-    <Container className="py-12 md:py-20 relative">
+    <Container className="py-12 md:py-20 relative overflow-x-hidden">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="space-y-8"
+        className="space-y-8 w-full"
       >
         <SectionTitle
           subtitle="Cheer Wall"
@@ -131,8 +131,8 @@ export default function CheerPage() {
           highlightWord="ส่งกำลังใจ"
         />
 
-        {/* Cheer Wall Feed (Maximized) */}
-        <div className="w-full space-y-4">
+        {/* Cheer Wall Feed (Fixed Layout) */}
+        <div className="w-full max-w-full space-y-4">
           <div className="flex items-center justify-between border-b border-border/40 pb-3">
             <h4 className="font-bold text-text-primary text-sm flex items-center gap-2">
               <MessageSquare size={16} className="text-primary" />
@@ -143,7 +143,8 @@ export default function CheerPage() {
             </span>
           </div>
 
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 max-h-[75vh] overflow-y-auto pr-2 pb-24 scrollbar-hide">
+          {/* แก้ตรงนี้: เปลี่ยนจาก columns เป็น grid + items-start ล็อคให้ไหลเฉพาะแนวตั้ง */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full items-start max-h-[75vh] overflow-y-auto pr-2 pb-24 scrollbar-hide">
             {cheerList.map((msg) => {
               const stickerObj = STICKERS.find((s) => s.id === msg.sticker_id);
               const emojiDisplay = stickerObj ? stickerObj.emoji : (msg.sticker_id || '💖');
@@ -152,7 +153,7 @@ export default function CheerPage() {
                   key={msg.id}
                   initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-surface-card rounded-2xl p-4 shadow-2xs hover:shadow-xs border border-border/30 transition-all flex gap-3 relative group break-inside-avoid mb-4"
+                  className="bg-surface-card rounded-2xl p-4 shadow-2xs hover:shadow-xs border border-border/30 transition-all flex gap-3 relative group w-full"
                 >
                   <div 
                     className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 flex items-center justify-center text-base shrink-0 shadow-inner"
