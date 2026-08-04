@@ -5,7 +5,7 @@ import Navbar from "@/components/ui/navbar";
 import Footer from "@/components/ui/footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import PresenceProvider from "@/components/presence-provider";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 // 🗑️ [หลังเปิดเว็บ ลบไฟล์ทิ้งได้เลย]: ลบ import บรรทัดที่ 10 นี้ และแท็ก <PreLaunchWrapper> ข้างล่างออก แล้วลบไฟล์ PreLaunchWrapper.tsx ทิ้งได้ทันที
 import PreLaunchWrapper from "@/components/PreLaunchWrapper";
 
