@@ -260,9 +260,27 @@ function ImageUploadField({
   );
 }
 
+// ── 🔒 กำหนดสิทธิ์อีเมลสตาฟ ──
+const SPORTS_STAFF_EMAILS = ['staff@gmail.com'];
+
 export default function AdminPage() {
   const { isAuthenticated, loading: authLoading, signIn, signOut, user } = useAuth();
+  
+  // ── 🔒 ตรวจสอบสิทธิ์ผู้ใช้จาก Email ──
+  const userEmail = user?.email || '';
+  const isSportsStaffOnly = SPORTS_STAFF_EMAILS.includes(userEmail);
+  
   const [activeTab, setActiveTab] = useState<AdminTab>('pinning');
+
+  // บังคับให้สตาฟเห็นแค่แท็บกีฬา (ถ้าพยายามกดไปหน้าอื่น จะเด้งกลับมาหน้ากีฬา)
+  useEffect(() => {
+    if (isSportsStaffOnly) {
+      const allowedTabs: AdminTab[] = ['sports', 'subcategories', 'athletes'];
+      if (!allowedTabs.includes(activeTab)) {
+        setActiveTab('sports');
+      }
+    }
+  }, [isSportsStaffOnly, activeTab]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -458,20 +476,24 @@ export default function AdminPage() {
     }
   }, [siteSettings]);
 
-  const tabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
-    { id: 'pinning', label: '📌 จัดการหน้าแรก / Pinning', icon: <Pin size={14} /> },
-    { id: 'sports', label: 'จัดการกีฬา', icon: <Dumbbell size={14} /> },
-    { id: 'subcategories', label: 'กีฬาย่อย', icon: <Database size={14} /> },
-    { id: 'matches', label: 'แมตช์ & คะแนน', icon: <Calendar size={14} /> },
-    { id: 'news', label: 'ข่าวสาร', icon: <Newspaper size={14} /> },
-    { id: 'gallery', label: 'แกลเลอรี', icon: <ImageIcon size={14} /> },
-    { id: 'athletes', label: 'นักกีฬา', icon: <Users size={14} /> },
-    { id: 'medals', label: 'เหรียญรางวัล', icon: <Award size={14} /> },
-    { id: 'staff', label: 'เจ้าหน้าที่/ทีมงาน', icon: <UserCheck size={14} /> },
-    { id: 'cheer_wall', label: 'Cheer Wall', icon: <MessageSquare size={14} /> },
-    { id: 'photo_wall', label: '🖼️ ตรวจสอบรูป', icon: <ImageIcon size={14} /> },
-    { id: 'analytics', label: 'สถิติการเข้าชม', icon: <BarChart2 size={14} /> },
+    const allTabs: { id: AdminTab; label: string; icon: React.ReactNode; allowedForStaff: boolean }[] = [
+    { id: 'sports', label: 'จัดการกีฬา', icon: <Dumbbell size={14} />, allowedForStaff: true },
+    { id: 'subcategories', label: 'กีฬาย่อย', icon: <Database size={14} />, allowedForStaff: true },
+    { id: 'athletes', label: 'นักกีฬา', icon: <Users size={14} />, allowedForStaff: true },
+    
+    { id: 'pinning', label: '📌 จัดการหน้าแรก / Pinning', icon: <Pin size={14} />, allowedForStaff: false },
+    { id: 'matches', label: 'แมตช์ & คะแนน', icon: <Calendar size={14} />, allowedForStaff: false },
+    { id: 'news', label: 'ข่าวสาร', icon: <Newspaper size={14} />, allowedForStaff: false },
+    { id: 'gallery', label: 'แกลเลอรี', icon: <ImageIcon size={14} />, allowedForStaff: false },
+    { id: 'medals', label: 'เหรียญรางวัล', icon: <Award size={14} />, allowedForStaff: false },
+    { id: 'staff', label: 'เจ้าหน้าที่/ทีมงาน', icon: <UserCheck size={14} />, allowedForStaff: false },
+    { id: 'cheer_wall', label: 'Cheer Wall', icon: <MessageSquare size={14} />, allowedForStaff: false },
+    { id: 'photo_wall', label: '🖼️ ตรวจสอบรูป', icon: <ImageIcon size={14} />, allowedForStaff: false },
+    { id: 'analytics', label: 'สถิติการเข้าชม', icon: <BarChart2 size={14} />, allowedForStaff: false },
   ];
+
+  const visibleTabs = isSportsStaffOnly ? allTabs.filter(t => t.allowedForStaff) : allTabs;
+
 
   if (authLoading) {
     return (
@@ -502,9 +524,16 @@ export default function AdminPage() {
       <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 border-b border-border/30 pb-6">
           <div>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 bg-primary/10 text-primary rounded-full mb-2 inline-block shadow-2xs">
-              Global Pinning System Enabled
-            </span>
+            {isSportsStaffOnly ? (
+  <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-full mb-2 inline-flex items-center gap-1 shadow-2xs">
+    สิทธิ์: สตาฟจัดการกีฬา (Sports Staff)
+  </span>
+) : (
+  <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 bg-primary/10 text-primary rounded-full mb-2 inline-flex items-center gap-1 shadow-2xs">
+    สิทธิ์: ผู้ดูแลระบบหลัก (Super Admin)
+  </span>
+)}
+
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
               แผงควบคุมระบบหลังบ้าน
             </h1>
@@ -546,7 +575,8 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Tab Navigation Sidebar */}
           <div className="lg:col-span-3 flex flex-row lg:flex-col overflow-x-auto lg:overflow-visible gap-1.5 border-b lg:border-b-0 border-border/30 pb-4 lg:pb-0 scrollbar-hide">
-            {tabs.map(tab => (
+            {visibleTabs.map(tab => (
+
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
